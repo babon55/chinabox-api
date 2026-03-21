@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(ADMIN)
+  avatar        String         @default("👤")
+  phone         String?
+  timezone      String         @default("Asia/Ashgabat")
+  langPref      String         @default("tk")
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  VIEWER
+}
+
+// ─── Store ────────────────────────────────────────────────────────────────────
+
+model StoreSettings {
+  id        String   @id @default("singleton")
+  nameTk    String   @default("SilkShop")
+  nameRu    String   @default("SilkShop")
+  taglineTk String   @default("Iň gowy önümler")
+  taglineRu String   @default("Лучшие товары")
+  email     String   @default("info@silkshop.tm")
+  phone     String   @default("+993 12 123456")
+  addressTk String   @default("Aşgabat, Türkmenistan")
+  addressRu String   @default("Ашхабад, Туркменистан")
+  currency  String   @default("USD")
+  logo      String   @default("🛍️")
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Products ─────────────────────────────────────────────────────────────────
+
+model Category {
+  id        String    @id @default(cuid())
+  nameTk    String
+  nameRu    String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Product {
+  id         String        @id @default(cuid())
+  nameTk     String
+  nameRu     String
+  categoryId String
+  category   Category      @relation(fields: [categoryId], references: [id])
+  image      String        @default("📦")
+  imageUrl   String?
+  weightG    Int?
+  price      Decimal       @db.Decimal(10, 2)
+  stock      Int           @default(0)
+  sold       Int           @default(0)
+  status     ProductStatus @default(ACTIVE)
+  orderLines OrderLine[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+}
+
+// ─── Customers ────────────────────────────────────────────────────────────────
+
+model Customer {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  phone        String
+  address      String
+  passwordHash String?
+  status       CustomerStatus @default(ACTIVE)
+  orders       Order[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+enum CustomerStatus {
+  ACTIVE
+  BLOCKED
+}
+
+// ─── Orders ──────────────────────────────────────────────────────────────────
+
+model Order {
+  id         String      @id @default(cuid())
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  lines      OrderLine[]
+  total      Decimal     @db.Decimal(10, 2)
+  status     OrderStatus @default(PENDING)
+  note       String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model OrderLine {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int
+  unitPrice Decimal @db.Decimal(10, 2)
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
