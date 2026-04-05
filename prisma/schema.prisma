@@ -79,9 +79,11 @@ model Product {
   stock      Int           @default(0)
   sold       Int           @default(0)
   status     ProductStatus @default(ACTIVE)
+  options    Json          @default("[]")   // JSON array of product options
   orderLines OrderLine[]
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
+  comments   Comment[]
 }
 
 enum ProductStatus {
@@ -103,6 +105,7 @@ model Customer {
   orders       Order[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+  comments     Comment[]
 }
 
 enum CustomerStatus {
@@ -132,6 +135,7 @@ model OrderLine {
   product   Product @relation(fields: [productId], references: [id])
   qty       Int
   unitPrice Decimal @db.Decimal(10, 2)
+  options   Json    @default("{}")          // JSON object storing selected options
 }
 
 enum OrderStatus {
@@ -140,4 +144,42 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+// ─── Product Requests ─────────────────────────────────────────────────────────
+
+model ProductRequest {
+  id           String               @id @default(cuid())
+  nameTk       String
+  nameRu       String
+  description  String?
+  imageUrl     String?
+  contactName  String
+  contactPhone String?
+  contactEmail String?
+  status       ProductRequestStatus @default(NEW)
+  adminNote    String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
+
+enum ProductRequestStatus {
+  NEW
+  SEEN
+  ADDED
+  REJECTED
+}
+
+// ─── Comments ────────────────────────────────────────────────────────────────
+
+model Comment {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rating     Int      // 1-5
+  text       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

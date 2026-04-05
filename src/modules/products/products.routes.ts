@@ -46,7 +46,10 @@ export default async function productsRoutes(app: FastifyInstance) {
   // GET /api/v1/products/:id — PUBLIC
   app.get('/:id', async (req, reply) => {
     const { id } = req.params as { id: string }
-    const product = await app.prisma.product.findUnique({ where: { id }, include: { category: true } })
+    const product = await app.prisma.product.findUnique({
+      where: { id },
+      include: { category: true }
+    })
     if (!product) return notFound(reply, 'Product')
     return reply.send(product)
   })
@@ -71,7 +74,13 @@ export default async function productsRoutes(app: FastifyInstance) {
     }
 
     const [items, total] = await Promise.all([
-      app.prisma.product.findMany({ where, include: { category: true }, orderBy: { createdAt: 'desc' }, skip: (page-1)*limit, take: limit }),
+      app.prisma.product.findMany({
+        where,
+        include: { category: true },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
       app.prisma.product.count({ where }),
     ])
 
@@ -82,7 +91,10 @@ export default async function productsRoutes(app: FastifyInstance) {
   app.post('/', guard, async (req, reply) => {
     const parsed = ProductCreateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
-    const product = await app.prisma.product.create({ data: parsed.data, include: { category: true } })
+    const product = await app.prisma.product.create({
+      data: parsed.data,
+      include: { category: true }
+    })
     return reply.code(201).send(product)
   })
 
@@ -93,7 +105,11 @@ export default async function productsRoutes(app: FastifyInstance) {
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const exists = await app.prisma.product.findUnique({ where: { id } })
     if (!exists) return notFound(reply, 'Product')
-    const product = await app.prisma.product.update({ where: { id }, data: parsed.data, include: { category: true } })
+    const product = await app.prisma.product.update({
+      where: { id },
+      data: parsed.data,
+      include: { category: true }
+    })
     return reply.send(product)
   })
 

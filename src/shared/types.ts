@@ -10,6 +10,16 @@ export const RefreshSchema = z.object({
 })
 
 // ─── Products ─────────────────────────────────────────────────────────────────
+export const ProductOptionSchema = z.object({
+  id:       z.string(),
+  nameTk:   z.string().min(1),
+  nameRu:   z.string().min(1),
+  type:     z.enum(['select', 'number', 'text', 'color']),
+  unit:     z.string().optional().nullable(),
+  values:   z.array(z.string()),
+  required: z.boolean().default(false),
+})
+
 export const ProductCreateSchema = z.object({
   nameTk:     z.string().min(1),
   nameRu:     z.string().min(1),
@@ -20,6 +30,7 @@ export const ProductCreateSchema = z.object({
   weightG:    z.number().int().min(0).optional().nullable(),
   stock:      z.number().int().min(0),
   status:     z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).default('ACTIVE'),
+  options:    z.array(ProductOptionSchema).default([]),
 })
 export const ProductUpdateSchema = ProductCreateSchema.partial()
 export const ProductQuerySchema = z.object({
@@ -30,10 +41,12 @@ export const ProductQuerySchema = z.object({
 })
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
-export const OrderLineSchema = z.object({
-  productId: z.string().min(1),
+// Find the line item schema inside OrderCreateSchema — add options:
+const OrderLineSchema = z.object({
+  productId: z.string(),
   qty:       z.number().int().positive(),
   unitPrice: z.number().positive(),
+  options:   z.record(z.string(), z.string()).optional().default({}), // ← ADD THIS
 })
 export const OrderCreateSchema = z.object({
   customerId: z.string().min(1),

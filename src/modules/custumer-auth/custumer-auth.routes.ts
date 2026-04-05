@@ -13,6 +13,7 @@ const CustomerOrderLineSchema = z.object({
   productId: z.string().min(1),
   qty:       z.number().int().positive(),
   unitPrice: z.number().positive(),
+  options:   z.record(z.string(), z.string()).optional().default({}), // ← ADD THIS
 })
 
 const CustomerOrderCreateSchema = z.object({

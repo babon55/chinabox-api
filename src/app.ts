@@ -18,6 +18,8 @@ import dashboardRoutes    from './modules/dashboard/dashboard.routes.js'
 import analyticsRoutes    from './modules/analytics/analytics.routes.js'
 import settingsRoutes     from './modules/settings/settings.routes.js'
 import uploadRoutes       from './modules/upload/upload.routes.js'
+import requestsRoutes from './modules/requests/requests.routes.js'
+import commentsRoutes from './modules/products/comments.routes.js'
 
 import { config } from './config.js'
 
@@ -91,6 +93,8 @@ export async function buildApp() {
     api.register(analyticsRoutes,    { prefix: '/analytics' })
     api.register(settingsRoutes,     { prefix: '/settings'  })
     api.register(uploadRoutes,       { prefix: '/upload'    })
+    api.register(requestsRoutes,     { prefix: '/requests'  })
+    api.register(commentsRoutes,     { prefix: '/products'  })
   }, { prefix: '/api/v1' })
 
  app.setErrorHandler((err: any, _req, reply) => {

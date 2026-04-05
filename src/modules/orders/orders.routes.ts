@@ -4,30 +4,49 @@ import { badRequest, notFound } from '../../shared/errors.js'
 
 const orderInclude = {
   customer: true,
-  lines: { include: { product: { include: { category: true } } } },
+  lines: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          nameTk: true,
+          nameRu: true,
+          image: true,
+          imageUrl: true,
+          price: true,
+          options: true,
+          category: { select: { id: true, nameTk: true, nameRu: true } }
+        }
+      }
+    }
+  },
 }
 
 // Safe fields for public tracking — no personal customer info
 const trackInclude = {
-  lines: { include: { product: { select: { nameTk: true, nameRu: true, image: true } } } },
+  lines: {
+    include: {
+      product: {
+        select: { nameTk: true, nameRu: true, image: true, options: true }
+      }
+    }
+  },
 }
 
 export default async function ordersRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
   // ── PUBLIC: GET /api/v1/orders/track/:id ─────────────────────
-  // No auth required — returns safe order info only
   app.get('/track/:id', async (req, reply) => {
     const { id } = req.params as { id: string }
 
     const order = await app.prisma.order.findUnique({
-      where:   { id },
+      where: { id },
       include: trackInclude,
     })
 
     if (!order) return notFound(reply, 'Order')
 
-    // Return only safe public fields — no customer personal data
     return reply.send({
       id:        order.id,
       status:    order.status,
@@ -35,15 +54,16 @@ export default async function ordersRoutes(app: FastifyInstance) {
       note:      order.note,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
-      lines:     order.lines.map(l => ({
+      lines: order.lines.map(l => ({
         qty:       l.qty,
         unitPrice: l.unitPrice,
+        options:   l.options,
         product:   l.product,
       })),
     })
   })
 
-  // GET /api/v1/orders
+  // ── GET /api/v1/orders ───────────────────────────────────────
   app.get('/', guard, async (req, reply) => {
     const q = OrderQuerySchema.safeParse(req.query)
     if (!q.success) return badRequest(reply, q.error.message)
@@ -61,38 +81,74 @@ export default async function ordersRoutes(app: FastifyInstance) {
     }
 
     const [items, total] = await Promise.all([
-      app.prisma.order.findMany({ where, include: orderInclude, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      app.prisma.order.findMany({
+        where,
+        include: orderInclude,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
       app.prisma.order.count({ where }),
     ])
+
     return reply.send({ items, total, page, limit, pages: Math.ceil(total / limit) })
   })
 
-  // GET /api/v1/orders/:id
+  // ── GET /api/v1/orders/:id ───────────────────────────────────
   app.get('/:id', guard, async (req, reply) => {
     const { id } = req.params as { id: string }
-    const order  = await app.prisma.order.findUnique({ where: { id }, include: orderInclude })
+    const order = await app.prisma.order.findUnique({ where: { id }, include: orderInclude })
     if (!order) return notFound(reply, 'Order')
     return reply.send(order)
   })
 
-  // POST /api/v1/orders
+  // ── POST /api/v1/orders ──────────────────────────────────────
   app.post('/', guard, async (req, reply) => {
     const parsed = OrderCreateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const { customerId, lines, note } = parsed.data
 
+    // Verify customer exists
     const customer = await app.prisma.customer.findUnique({ where: { id: customerId } })
     if (!customer) return notFound(reply, 'Customer')
 
+    // Validate required options for each line
+    for (const line of lines) {
+      const product = await app.prisma.product.findUnique({
+        where: { id: line.productId },
+        select: { options: true }
+      })
+      if (!product) return badRequest(reply, `Invalid product ID: ${line.productId}`)
+
+      // Ensure options is an array before filtering
+     const optionsArray = Array.isArray(product.options)
+        ? product.options as any[]
+        : typeof product.options === 'string'
+          ? JSON.parse(product.options || '[]')
+          : []
+
+      const requiredOptions = optionsArray.filter((o: any) => o.required !== false)
+
+      for (const opt of requiredOptions) {
+        if (!line.options || !line.options[opt.id]) {
+          return badRequest(reply, `Missing required option '${opt.id}' for product ${line.productId}`)
+        }
+      }
+    }
+
+    // Calculate total price
     const total = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
+
+    // Create order with lines
     const order = await app.prisma.order.create({
       data: { customerId, total, note, lines: { create: lines } },
       include: orderInclude,
     })
+
     return reply.code(201).send(order)
   })
 
-  // PATCH /api/v1/orders/:id
+  // ── PATCH /api/v1/orders/:id ─────────────────────────────────
   app.patch('/:id', guard, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = OrderUpdateSchema.safeParse(req.body)
@@ -103,7 +159,7 @@ export default async function ordersRoutes(app: FastifyInstance) {
     return reply.send(order)
   })
 
-  // DELETE /api/v1/orders/:id
+  // ── DELETE /api/v1/orders/:id ────────────────────────────────
   app.delete('/:id', guard, async (req, reply) => {
     const { id } = req.params as { id: string }
     const exists = await app.prisma.order.findUnique({ where: { id } })
