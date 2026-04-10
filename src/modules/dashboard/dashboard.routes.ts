@@ -1,9 +1,13 @@
 import type { FastifyInstance } from 'fastify'
+import { config } from '../../config.js'
 
 export default async function dashboardRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
-  app.get('/', guard, async (_req, reply) => {
+  app.get('/', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (_req, reply) => {
     const [totalRevenue, totalOrders, totalCustomers, totalProducts, recentOrders, topProducts, ordersByStatus] = await Promise.all([
       app.prisma.order.aggregate({ where: { status: { not: 'CANCELLED' } }, _sum: { total: true } }),
       app.prisma.order.count(),

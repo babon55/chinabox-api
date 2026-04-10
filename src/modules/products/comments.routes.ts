@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { badRequest, unauthorized, notFound } from '../../shared/errors.js'
+import { config } from '../../config.js'
 
 const CreateCommentSchema = z.object({
   rating: z.number().int().min(1).max(5),
@@ -11,7 +12,9 @@ export default async function commentsRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
   // GET /api/v1/products/:id/comments — PUBLIC
-  app.get('/:id/comments', async (req, reply) => {
+  app.get('/:id/comments', {
+    rateLimit: { max: config.rateLimits.products.max, timeWindow: config.rateLimits.products.timeWindow }
+  }, async (req, reply) => {
     const { id } = req.params as { id: string }
 
     const comments = await (app.prisma as any).comment.findMany({
@@ -30,7 +33,10 @@ export default async function commentsRoutes(app: FastifyInstance) {
   })
 
   // POST /api/v1/products/:id/comments — Customer JWT required
-  app.post('/:id/comments', guard, async (req, reply) => {
+  app.post('/:id/comments', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
+  }, async (req, reply) => {
     const user = req.user as any
     if (user.role !== 'CUSTOMER') return unauthorized(reply, 'Customer token required')
 
@@ -62,7 +68,10 @@ export default async function commentsRoutes(app: FastifyInstance) {
   })
 
   // DELETE /api/v1/products/:id/comments/:commentId — own comment only
-  app.delete('/:id/comments/:commentId', guard, async (req, reply) => {
+  app.delete('/:id/comments/:commentId', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
+  }, async (req, reply) => {
     const user = req.user as any
     const { commentId } = req.params as { id: string; commentId: string }
 

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { badRequest, notFound } from '../../shared/errors.js'
+import { config } from '../../config.js'
 
 const CreateRequestSchema = z.object({
   nameTk:       z.string().min(1),
@@ -27,7 +28,9 @@ export default async function requestsRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
   // POST /api/v1/requests — PUBLIC (customers submit requests)
-  app.post('/', async (req, reply) => {
+  app.post('/', {
+    rateLimit: { max: config.rateLimits.publicRequests.max, timeWindow: config.rateLimits.publicRequests.timeWindow }
+  }, async (req, reply) => {
     const parsed = CreateRequestSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
 
@@ -38,7 +41,10 @@ export default async function requestsRoutes(app: FastifyInstance) {
   })
 
   // GET /api/v1/requests — ADMIN only
-  app.get('/', guard, async (req, reply) => {
+  app.get('/', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const q = QuerySchema.safeParse(req.query)
     if (!q.success) return badRequest(reply, q.error.message)
     const { status, page, limit } = q.data
@@ -59,7 +65,10 @@ export default async function requestsRoutes(app: FastifyInstance) {
   })
 
   // PATCH /api/v1/requests/:id — ADMIN only
-  app.patch('/:id', guard, async (req, reply) => {
+  app.patch('/:id', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = UpdateRequestSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
@@ -75,7 +84,10 @@ export default async function requestsRoutes(app: FastifyInstance) {
   })
 
   // DELETE /api/v1/requests/:id — ADMIN only
-  app.delete('/:id', guard, async (req, reply) => {
+  app.delete('/:id', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const exists = await (app.prisma as any).productRequest.findUnique({ where: { id } })
     if (!exists) return notFound(reply, 'Request')

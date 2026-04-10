@@ -25,13 +25,16 @@ export const ProductCreateSchema = z.object({
   nameRu:     z.string().min(1),
   categoryId: z.string().min(1),
   image:      z.string().default('📦'),
-  imageUrl:   z.string().url().optional().nullable(),
-  price:      z.number().positive(),
-  weightG:    z.number().int().min(0).optional().nullable(),
-  stock:      z.number().int().min(0),
+  imageUrl:   z.string().url().nullable().optional(),
+  imageUrls:  z.array(z.string().url()).default([]),  // ← NEW
+  price:      z.coerce.number().positive(),
+  weightG:    z.coerce.number().int().positive().nullable().optional(),
+  stock:      z.coerce.number().int().min(0).default(0),
   status:     z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).default('ACTIVE'),
-  options:    z.array(ProductOptionSchema).default([]),
+  markup:     z.coerce.number().int().min(0).default(50),
+  options:    z.array(z.any()).default([]),
 })
+
 export const ProductUpdateSchema = ProductCreateSchema.partial()
 export const ProductQuerySchema = z.object({
   status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),

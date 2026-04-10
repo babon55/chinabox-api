@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { AnalyticsQuerySchema } from '../../shared/types.js'
 import { badRequest } from '../../shared/errors.js'
+import { config } from '../../config.js'
 
 function startOf(range: '7d' | '30d' | '12m'): Date {
   const d = new Date()
@@ -13,7 +14,10 @@ function startOf(range: '7d' | '30d' | '12m'): Date {
 export default async function analyticsRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
-  app.get('/', guard, async (req, reply) => {
+  app.get('/', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const q = AnalyticsQuerySchema.safeParse(req.query)
     if (!q.success) return badRequest(reply, q.error.message)
     const { range } = q.data

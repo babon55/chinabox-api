@@ -10,8 +10,10 @@ function hashPw(pw: string) {
 
 export default async function authRoutes(app: FastifyInstance) {
 
-  // POST /api/v1/auth/login
-  app.post('/login', async (req, reply) => {
+  // POST /api/v1/auth/login - limit to prevent brute force
+  app.post('/login', {
+    rateLimit: { max: config.rateLimits.auth.max, timeWindow: config.rateLimits.auth.timeWindow }
+  }, async (req, reply) => {
     const parsed = LoginSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const { email, password } = parsed.data
@@ -37,8 +39,10 @@ export default async function authRoutes(app: FastifyInstance) {
     })
   })
 
-  // POST /api/v1/auth/refresh
-  app.post('/refresh', async (req, reply) => {
+  // POST /api/v1/auth/refresh - limit to prevent abuse
+  app.post('/refresh', {
+    rateLimit: { max: config.rateLimits.refresh.max, timeWindow: config.rateLimits.refresh.timeWindow }
+  }, async (req, reply) => {
     const parsed = RefreshSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, 'refreshToken required')
     const { refreshToken } = parsed.data
@@ -69,7 +73,10 @@ export default async function authRoutes(app: FastifyInstance) {
   })
 
   // POST /api/v1/auth/logout
-  app.post('/logout', { onRequest: [app.authenticate] }, async (req, reply) => {
+  app.post('/logout', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const parsed = RefreshSchema.safeParse(req.body)
     if (parsed.success) {
       await app.prisma.refreshToken.deleteMany({ where: { token: parsed.data.refreshToken } })
@@ -78,7 +85,10 @@ export default async function authRoutes(app: FastifyInstance) {
   })
 
   // GET /api/v1/auth/me
-  app.get('/me', { onRequest: [app.authenticate] }, async (req, reply) => {
+  app.get('/me', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const user = await app.prisma.user.findUnique({
       where:  { id: (req.user as any).sub },
       select: { id: true, name: true, email: true, role: true, avatar: true, phone: true, timezone: true, langPref: true },
@@ -88,7 +98,10 @@ export default async function authRoutes(app: FastifyInstance) {
   })
 
   // PATCH /api/v1/auth/me
-  app.patch('/me', { onRequest: [app.authenticate] }, async (req, reply) => {
+  app.patch('/me', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const body    = req.body as Record<string, unknown>
     const allowed = ['name', 'phone', 'avatar', 'timezone', 'langPref']
     const data    = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
@@ -97,7 +110,10 @@ export default async function authRoutes(app: FastifyInstance) {
   })
 
   // POST /api/v1/auth/change-password
-  app.post('/change-password', { onRequest: [app.authenticate] }, async (req, reply) => {
+  app.post('/change-password', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const parsed = PasswordChangeSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const { currentPassword, newPassword } = parsed.data

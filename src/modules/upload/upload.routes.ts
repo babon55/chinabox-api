@@ -1,11 +1,15 @@
 import type { FastifyInstance } from 'fastify'
 import { badRequest, serverError } from '../../shared/errors.js'
+import { config } from '../../config.js'
 
 export default async function uploadRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
   // ── Admin: upload product image (requires JWT) ─────────────────────────────
-  app.post('/product', guard, async (req, reply) => {
+  app.post('/product', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.upload.max, timeWindow: config.rateLimits.upload.timeWindow }
+  }, async (req, reply) => {
     if (!req.isMultipart()) {
       return badRequest(reply, 'Request must be multipart/form-data')
     }
@@ -58,7 +62,9 @@ export default async function uploadRoutes(app: FastifyInstance) {
   })
 
   // ── PUBLIC: upload request image (no JWT — for product request form) ────────
-  app.post('/request', async (req, reply) => {
+  app.post('/request', {
+    rateLimit: { max: config.rateLimits.publicUpload.max, timeWindow: config.rateLimits.publicUpload.timeWindow }
+  }, async (req, reply) => {
     if (!req.isMultipart()) {
       return badRequest(reply, 'Request must be multipart/form-data')
     }
@@ -108,7 +114,10 @@ export default async function uploadRoutes(app: FastifyInstance) {
   })
 
   // ── Admin: delete image ────────────────────────────────────────────────────
-  app.delete('/product', guard, async (req, reply) => {
+  app.delete('/product', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.upload.max, timeWindow: config.rateLimits.upload.timeWindow }
+  }, async (req, reply) => {
     const { publicId } = req.body as { publicId?: string }
     if (!publicId) return badRequest(reply, 'publicId required')
     try {

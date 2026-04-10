@@ -24,7 +24,9 @@ const CustomerOrderCreateSchema = z.object({
 export default async function customerAuthRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/customer/register ─────────────────────────────────────────
-  app.post('/register', async (req, reply) => {
+  app.post('/register', {
+    rateLimit: { max: config.rateLimits.customerAuth.max, timeWindow: config.rateLimits.customerAuth.timeWindow }
+  }, async (req, reply) => {
     const parsed = CustomerRegisterSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const { name, email, phone, address, password } = parsed.data
@@ -47,7 +49,9 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/customer/login ────────────────────────────────────────────
-  app.post('/login', async (req, reply) => {
+  app.post('/login', {
+    rateLimit: { max: config.rateLimits.customerAuth.max, timeWindow: config.rateLimits.customerAuth.timeWindow }
+  }, async (req, reply) => {
     const parsed = CustomerLoginSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const { email, password } = parsed.data
@@ -69,7 +73,9 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/customer/refresh ──────────────────────────────────────────
-  app.post('/refresh', async (req, reply) => {
+  app.post('/refresh', {
+    rateLimit: { max: config.rateLimits.refresh.max, timeWindow: config.rateLimits.refresh.timeWindow }
+  }, async (req, reply) => {
     const { refreshToken } = req.body as { refreshToken?: string }
     if (!refreshToken) return badRequest(reply, 'Refresh token required')
 
@@ -96,7 +102,10 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/customer/me ────────────────────────────────────────────────
-  app.get('/me', { onRequest: [app.authenticate] }, async (req, reply) => {
+  app.get('/me', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
+  }, async (req, reply) => {
     const user = req.user as any
     if (user.role !== 'CUSTOMER') return unauthorized(reply, 'Customer token required')
 
@@ -109,7 +118,10 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/customer/orders ────────────────────────────────────────────
-  app.get('/orders', { onRequest: [app.authenticate] }, async (req, reply) => {
+  app.get('/orders', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
+  }, async (req, reply) => {
     const user = req.user as any
     if (user.role !== 'CUSTOMER') return unauthorized(reply, 'Customer token required')
 
@@ -122,7 +134,10 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/customer/orders ───────────────────────────────────────────
-  app.post('/orders', { onRequest: [app.authenticate] }, async (req, reply) => {
+  app.post('/orders', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
+  }, async (req, reply) => {
     const user = req.user as any
     if (user.role !== 'CUSTOMER') return unauthorized(reply, 'Customer token required')
 

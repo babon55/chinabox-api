@@ -1,9 +1,11 @@
-import Fastify           from 'fastify'
+import Fastify from 'fastify'
+import type { FastifyRequest } from 'fastify'
 import cors              from '@fastify/cors'
 import helmet            from '@fastify/helmet'
 import multipart         from '@fastify/multipart'
 import swagger           from '@fastify/swagger'
 import scalarUi          from '@scalar/fastify-api-reference'
+import { rateLimitPlugin } from './plugins/rate-limit.js'
 
 import prismaPlugin       from './plugins/prisma.js'
 import jwtPlugin          from './plugins/jwt.js'
@@ -42,7 +44,7 @@ export async function buildApp() {
       // Allow requests with no origin (curl, Postman, server-to-server)
       if (!origin) return cb(null, true)
       if (allowedOrigins.includes(origin)) return cb(null, true)
-      cb(new Error(`Origin ${origin} not allowed`), false)
+      cb(new Error('Not allowed'), false)
     },
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
@@ -50,6 +52,10 @@ export async function buildApp() {
   })
 
   await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024, files: 1 } })
+
+  // ── Rate Limiting ─────────────────────────────────────────────────────────────
+  // Register custom rate limit plugin
+  await app.register(rateLimitPlugin)
 
   await app.register(swagger, {
     openapi: {
@@ -98,10 +104,17 @@ export async function buildApp() {
   }, { prefix: '/api/v1' })
 
  app.setErrorHandler((err: any, _req, reply) => {
-  app.log.error(err)
-  reply.code(err.statusCode ?? 500).send({
-    error: 'ERROR', message: config.isDev ? err.message : 'Something went wrong',
-  })
+  const status = err.statusCode ?? 500
+
+  // Always log on the server side
+  if (status >= 500) app.log.error(err)
+
+  // Never expose internal error details to the client
+  const message = status < 500
+    ? err.message                  // 4xx — intentional, safe to show
+    : 'Something went wrong'       // 5xx — always generic
+
+  reply.code(status).send({ error: err.code ?? 'ERROR', message })
 })
 
   return app

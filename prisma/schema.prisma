@@ -73,13 +73,15 @@ model Product {
   categoryId String
   category   Category      @relation(fields: [categoryId], references: [id])
   image      String        @default("📦")
-  imageUrl   String?
+  imageUrl   String?                      // keep for backward compat (first image)
+  imageUrls  String[]      @default([])   // ← NEW: multiple images
   weightG    Int?
   price      Decimal       @db.Decimal(10, 2)
   stock      Int           @default(0)
   sold       Int           @default(0)
   status     ProductStatus @default(ACTIVE)
-  options    Json          @default("[]")   // JSON array of product options
+  markup     Int           @default(50)   // also add this — it's missing from schema
+  options    Json          @default("[]")
   orderLines OrderLine[]
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt

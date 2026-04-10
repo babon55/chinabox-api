@@ -1,12 +1,16 @@
 import type { FastifyInstance } from 'fastify'
 import { CustomerCreateSchema, CustomerUpdateSchema, CustomerQuerySchema } from '../../shared/types.js'
 import { badRequest, notFound, conflict } from '../../shared/errors.js'
+import { config } from '../../config.js'
 
 export default async function customersRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
   // GET /api/v1/customers
-  app.get('/', guard, async (req, reply) => {
+  app.get('/', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const q = CustomerQuerySchema.safeParse(req.query)
     if (!q.success) return badRequest(reply, q.error.message)
     const { status, search, page, limit } = q.data
@@ -45,7 +49,10 @@ export default async function customersRoutes(app: FastifyInstance) {
   })
 
   // GET /api/v1/customers/:id
-  app.get('/:id', guard, async (req, reply) => {
+  app.get('/:id', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const { id }   = req.params as { id: string }
     const customer = await app.prisma.customer.findUnique({
       where:   { id },
@@ -60,7 +67,10 @@ export default async function customersRoutes(app: FastifyInstance) {
   })
 
   // POST /api/v1/customers
-  app.post('/', guard, async (req, reply) => {
+  app.post('/', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const parsed = CustomerCreateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const exists = await app.prisma.customer.findUnique({ where: { email: parsed.data.email } })
@@ -70,7 +80,10 @@ export default async function customersRoutes(app: FastifyInstance) {
   })
 
   // PATCH /api/v1/customers/:id
-  app.patch('/:id', guard, async (req, reply) => {
+  app.patch('/:id', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = CustomerUpdateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
@@ -85,7 +98,10 @@ export default async function customersRoutes(app: FastifyInstance) {
   })
 
   // DELETE /api/v1/customers/:id
-  app.delete('/:id', guard, async (req, reply) => {
+  app.delete('/:id', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const exists = await app.prisma.customer.findUnique({ where: { id } })
     if (!exists) return notFound(reply, 'Customer')
