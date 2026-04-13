@@ -100,9 +100,10 @@ model Customer {
   id           String         @id @default(cuid())
   name         String
   email        String         @unique
-  phone        String
-  address      String
+  phone        String?
+  address      String?
   passwordHash String?
+  googleId     String?        @unique  // ← add this
   status       CustomerStatus @default(ACTIVE)
   orders       Order[]
   createdAt    DateTime       @default(now())

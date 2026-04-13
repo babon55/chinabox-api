@@ -1,5 +1,4 @@
 import Fastify from 'fastify'
-import type { FastifyRequest } from 'fastify'
 import cors              from '@fastify/cors'
 import helmet            from '@fastify/helmet'
 import multipart         from '@fastify/multipart'
@@ -22,6 +21,9 @@ import settingsRoutes     from './modules/settings/settings.routes.js'
 import uploadRoutes       from './modules/upload/upload.routes.js'
 import requestsRoutes from './modules/requests/requests.routes.js'
 import commentsRoutes from './modules/products/comments.routes.js'
+
+import googleOAuthPlugin from './plugins/google-oauth.js'
+import googleAuthRoutes  from './modules/google-auth/google-auth.routes.js'
 
 import { config } from './config.js'
 
@@ -86,8 +88,11 @@ export async function buildApp() {
   await app.register(prismaPlugin)
   await app.register(jwtPlugin)
   await app.register(cloudinaryPlugin)
+  await app.register(googleOAuthPlugin)  // ← add this
 
   app.get('/health', async () => ({ status: 'ok', ts: new Date().toISOString() }))
+
+  await app.register(googleAuthRoutes)
 
   await app.register(async (api) => {
     api.register(authRoutes,         { prefix: '/auth'      })
