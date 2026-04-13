@@ -52,9 +52,11 @@ const OrderLineSchema = z.object({
   options:   z.record(z.string(), z.string()).optional().default({}), // ← ADD THIS
 })
 export const OrderCreateSchema = z.object({
-  customerId: z.string().min(1),
-  lines:      z.array(OrderLineSchema).min(1),
-  note:       z.string().optional(),
+  customerId:   z.string().min(1),
+  deliveryType: z.enum(['simple', 'fast']).default('simple'),
+  homeDelivery: z.boolean().default(false),
+  lines:        z.array(OrderLineSchema).min(1),
+  note:         z.string().optional(),
 })
 export const OrderUpdateSchema = z.object({
   status: z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']),

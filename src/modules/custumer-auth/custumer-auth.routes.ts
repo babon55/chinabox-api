@@ -17,6 +17,8 @@ const CustomerOrderLineSchema = z.object({
 })
 
 const CustomerOrderCreateSchema = z.object({
+  deliveryType: z.enum(['simple', 'fast']).default('simple'),
+  homeDelivery: z.boolean().default(false),
   lines: z.array(CustomerOrderLineSchema).min(1, 'Order must have at least one item'),
   note:  z.string().optional(),
 })
@@ -143,22 +145,27 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
 
     const parsed = CustomerOrderCreateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
-    const { lines, note } = parsed.data
+      const { lines, note, deliveryType, homeDelivery } = parsed.data
 
-    const productIds = lines.map(l => l.productId)
-    const products   = await app.prisma.product.findMany({
-      where: { id: { in: productIds } }, select: { id: true },
-    })
+      const productIds = lines.map(l => l.productId)
+      const products   = await app.prisma.product.findMany({
+        where: { id: { in: productIds } }, select: { id: true, weightG: true },
+      })
 
-    if (products.length !== productIds.length) {
-      const foundIds   = products.map(p => p.id)
-      const missingIds = productIds.filter(id => !foundIds.includes(id))
-      return badRequest(reply, `Products not found: ${missingIds.join(', ')}`)
-    }
+      if (products.length !== productIds.length) {
+        const foundIds   = products.map(p => p.id)
+        const missingIds = productIds.filter(id => !foundIds.includes(id))
+        return badRequest(reply, `Products not found: ${missingIds.join(', ')}`)
+      }
 
-    const total = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
+      const weightMap    = new Map(products.map(p => [p.id, p.weightG ?? 0]))
+      const subtotal     = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
+      const totalWeightKg = lines.reduce((s, l) => s + (weightMap.get(l.productId) ?? 0) * l.qty, 0) / 1000
+      const rate         = deliveryType === 'fast' ? 11 : 7
+      const total        = subtotal + totalWeightKg * rate + (homeDelivery ? 1 : 0)
+
     const order = await app.prisma.order.create({
-      data: { customerId: user.sub, total, note, lines: { create: lines } },
+       data: { customerId: user.sub, total, note, deliveryType, homeDelivery, lines: { create: lines } },
       include: { customer: true, lines: { include: { product: { include: { category: true } } } } },
     })
 

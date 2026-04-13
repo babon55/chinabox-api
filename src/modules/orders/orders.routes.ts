@@ -131,7 +131,7 @@ export default async function ordersRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const parsed = OrderCreateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
-    const { customerId, lines, note } = parsed.data
+    const { customerId, lines, note, deliveryType, homeDelivery } = parsed.data
 
     // Verify customer exists
     const customer = await app.prisma.customer.findUnique({ where: { id: customerId } })
@@ -178,13 +178,13 @@ export default async function ordersRoutes(app: FastifyInstance) {
       totalWeightGrams += weight * line.qty
     }
     const weightKg = totalWeightGrams / 1000
-    const delivery = weightKg * 7 // $7 per kg simple delivery
-
-    const total = subtotal + delivery
+const rate     = deliveryType === 'fast' ? 11 : 7
+const delivery = weightKg * rate + (homeDelivery ? 1 : 0)
+const total    = subtotal + delivery
 
     // Create order with lines
     const order = await app.prisma.order.create({
-      data: { customerId, total, note, lines: { create: lines } },
+      data: { customerId, total, note, deliveryType, homeDelivery, lines: { create: lines } },
       include: orderInclude,
     })
 

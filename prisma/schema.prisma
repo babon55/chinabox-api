@@ -118,17 +118,18 @@ enum CustomerStatus {
 // ─── Orders ──────────────────────────────────────────────────────────────────
 
 model Order {
-  id         String      @id @default(cuid())
-  customerId String
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  lines      OrderLine[]
-  total      Decimal     @db.Decimal(10, 2)
-  status     OrderStatus @default(PENDING)
-  note       String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id           String       @id @default(cuid())
+  customerId   String
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  lines        OrderLine[]
+  total        Decimal      @db.Decimal(10, 2)
+  status       OrderStatus  @default(PENDING)
+  deliveryType DeliveryType @default(simple)
+  homeDelivery Boolean      @default(false)
+  note         String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
-
 model OrderLine {
   id        String  @id @default(cuid())
   orderId   String
@@ -148,6 +149,10 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum DeliveryType {
+  simple
+  fast
+}
 // ─── Product Requests ─────────────────────────────────────────────────────────
 
 model ProductRequest {
