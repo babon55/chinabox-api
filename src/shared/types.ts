@@ -23,6 +23,8 @@ export const ProductOptionSchema = z.object({
 export const ProductCreateSchema = z.object({
   nameTk:     z.string().min(1),
   nameRu:     z.string().min(1),
+  descriptionTk: z.string().nullable().optional(),
+  descriptionRu: z.string().nullable().optional(),
   categoryId: z.string().min(1),
   image:      z.string().default('📦'),
   imageUrl:   z.string().url().nullable().optional(),
@@ -37,10 +39,13 @@ export const ProductCreateSchema = z.object({
 
 export const ProductUpdateSchema = ProductCreateSchema.partial()
 export const ProductQuerySchema = z.object({
-  status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),
-  search: z.string().optional(),
-  page:   z.coerce.number().int().positive().default(1),
-  limit:  z.coerce.number().int().positive().max(100).default(20),
+  status:   z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),
+  search:   z.string().optional(),
+  category: z.string().optional(),
+  sort: z.enum(['newest', 'price_asc', 'price_desc', 'popular', 'random']).optional().default('random'),
+  exclude:  z.string().optional(),
+  page:     z.coerce.number().int().positive().default(1),
+  limit:    z.coerce.number().int().positive().max(100).default(20),
 })
 
 // ─── Orders ───────────────────────────────────────────────────────────────────

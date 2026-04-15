@@ -14,10 +14,20 @@ export default async function productsRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const q = ProductQuerySchema.safeParse(req.query)
     if (!q.success) return badRequest(reply, q.error.message)
-    const { status, search, page, limit } = q.data
 
+    const { status, search, page, limit, category, sort, exclude } = q.data
+
+    // ── Where clause ─────────────────────────────────────────────────────────
     const where = {
       status: status ?? ('ACTIVE' as const),
+
+      // exclude a specific product id (used by related products)
+      ...(exclude ? { id: { not: exclude } } : {}),
+
+      // filter by category
+      ...(category ? { categoryId: category } : {}),
+
+      // search across both language name fields
       ...(search ? {
         OR: [
           { nameTk: { contains: search, mode: 'insensitive' as const } },
@@ -26,21 +36,38 @@ export default async function productsRoutes(app: FastifyInstance) {
       } : {}),
     }
 
+    // ── Order by ──────────────────────────────────────────────────────────────
+    const orderBy = (() => {
+      switch (sort) {
+        case 'price_asc':  return { price: 'asc'  as const }
+        case 'price_desc': return { price: 'desc' as const }
+        case 'popular':    return { sold:  'desc' as const }
+        case 'random':     return { createdAt: 'desc' as const }
+        default:           return { createdAt: 'desc' as const }   // 'newest'
+      }
+    })()
+
+    // ── Query ─────────────────────────────────────────────────────────────────
     const [itemsRaw, total] = await Promise.all([
       app.prisma.product.findMany({
         where,
-        include: { category: true },
-        orderBy: { createdAt: 'desc' },
-        skip:    (page - 1) * limit,
-        take:    limit,
+        include:  { category: true },
+        orderBy,
+        skip:     (page - 1) * limit,
+        take:     limit,
       }),
       app.prisma.product.count({ where }),
     ])
-    const items = itemsRaw.map(p => ({
+
+    let items = itemsRaw.map(p => ({
       ...p,
-      price: Number(p.price),
-      weightG: p.weightG !== null && p.weightG !== undefined ? Number(p.weightG) : null,
+      price:   Number(p.price),
+      weightG: p.weightG != null ? Number(p.weightG) : null,
     }))
+
+    if (sort === 'random') {
+      items = items.sort(() => Math.random() - 0.5)
+    }
 
     return reply.send({ items, total, page, limit, pages: Math.ceil(total / limit) })
   })

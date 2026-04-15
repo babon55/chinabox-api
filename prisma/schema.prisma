@@ -70,6 +70,8 @@ model Product {
   id         String        @id @default(cuid())
   nameTk     String
   nameRu     String
+  descriptionTk String?       @db.Text    // ← ADD THIS
+  descriptionRu String?       @db.Text    // ← ADD THIS
   categoryId String
   category   Category      @relation(fields: [categoryId], references: [id])
   image      String        @default("📦")

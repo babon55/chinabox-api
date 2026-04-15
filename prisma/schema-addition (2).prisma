@@ -1,0 +1,35 @@
+// In prisma/schema.prisma, inside model Product, add these two fields
+// after nameRu:
+
+//   descriptionTk String? @db.Text
+//   descriptionRu String? @db.Text
+
+// Full Product model should look like:
+
+model Product {
+  id            String        @id @default(cuid())
+  nameTk        String
+  nameRu        String
+  descriptionTk String?       @db.Text    // ← ADD THIS
+  descriptionRu String?       @db.Text    // ← ADD THIS
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  image         String        @default("📦")
+  imageUrl      String?
+  imageUrls     String[]      @default([])
+  weightG       Int?
+  price         Decimal       @db.Decimal(10, 2)
+  stock         Int           @default(0)
+  sold          Int           @default(0)
+  status        ProductStatus @default(ACTIVE)
+  markup        Int           @default(50)
+  options       Json          @default("[]")
+  orderLines    OrderLine[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  comments      Comment[]
+}
+
+// Then run:
+// pnpm prisma db push
+// pnpm prisma generate
