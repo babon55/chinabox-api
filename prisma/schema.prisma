@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-
 model User {
   id            String         @id @default(cuid())
   name          String
@@ -57,37 +55,39 @@ model StoreSettings {
 }
 
 // ─── Products ─────────────────────────────────────────────────────────────────
-
 model Category {
-  id        String    @id @default(cuid())
+  id        String     @id @default(cuid())
   nameTk    String
   nameRu    String
+  parentId  String?
+  parent    Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children  Category[] @relation("SubCategories")
   products  Product[]
-  createdAt DateTime  @default(now())
+  createdAt DateTime   @default(now())
 }
 
 model Product {
-  id         String        @id @default(cuid())
-  nameTk     String
-  nameRu     String
-  descriptionTk String?       @db.Text    // ← ADD THIS
-  descriptionRu String?       @db.Text    // ← ADD THIS
-  categoryId String
-  category   Category      @relation(fields: [categoryId], references: [id])
-  image      String        @default("📦")
-  imageUrl   String?                      // keep for backward compat (first image)
-  imageUrls  String[]      @default([])   // ← NEW: multiple images
-  weightG    Int?
-  price      Decimal       @db.Decimal(10, 2)
-  stock      Int           @default(0)
-  sold       Int           @default(0)
-  status     ProductStatus @default(ACTIVE)
-  markup     Int           @default(50)   // also add this — it's missing from schema
-  options    Json          @default("[]")
-  orderLines OrderLine[]
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  comments   Comment[]
+  id            String        @id @default(cuid())
+  nameTk        String
+  nameRu        String
+  descriptionTk String?       @db.Text // ← ADD THIS
+  descriptionRu String?       @db.Text // ← ADD THIS
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  image         String        @default("📦")
+  imageUrl      String? // keep for backward compat (first image)
+  imageUrls     String[]      @default([]) // ← NEW: multiple images
+  weightG       Int?
+  price         Decimal       @db.Decimal(10, 2)
+  stock         Int           @default(0)
+  sold          Int           @default(0)
+  status        ProductStatus @default(ACTIVE)
+  markup        Int           @default(50) // also add this — it's missing from schema
+  options       Json          @default("[]")
+  orderLines    OrderLine[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  comments      Comment[]
 }
 
 enum ProductStatus {
@@ -105,7 +105,7 @@ model Customer {
   phone        String?
   address      String?
   passwordHash String?
-  googleId     String?        @unique  // ← add this
+  googleId     String?        @unique // ← add this
   status       CustomerStatus @default(ACTIVE)
   orders       Order[]
   createdAt    DateTime       @default(now())
@@ -133,6 +133,7 @@ model Order {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 }
+
 model OrderLine {
   id        String  @id @default(cuid())
   orderId   String
@@ -141,7 +142,7 @@ model OrderLine {
   product   Product @relation(fields: [productId], references: [id])
   qty       Int
   unitPrice Decimal @db.Decimal(10, 2)
-  options   Json    @default("{}")          // JSON object storing selected options
+  options   Json    @default("{}") // JSON object storing selected options
 }
 
 enum OrderStatus {
@@ -156,6 +157,7 @@ enum DeliveryType {
   simple
   fast
 }
+
 // ─── Product Requests ─────────────────────────────────────────────────────────
 
 model ProductRequest {
@@ -188,7 +190,7 @@ model Comment {
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  rating     Int      // 1-5
+  rating     Int // 1-5
   text       String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

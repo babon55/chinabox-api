@@ -13,7 +13,7 @@ const CustomerOrderLineSchema = z.object({
   productId: z.string().min(1),
   qty:       z.number().int().positive(),
   unitPrice: z.number().positive(),
-  options:   z.record(z.string(), z.string()).optional().default({}), // ← ADD THIS
+  options:   z.record(z.string(), z.string()).optional().default({}),
 })
 
 const CustomerOrderCreateSchema = z.object({
@@ -145,30 +145,98 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
 
     const parsed = CustomerOrderCreateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
-      const { lines, note, deliveryType, homeDelivery } = parsed.data
+    const { lines, note, deliveryType, homeDelivery } = parsed.data
 
-      const productIds = lines.map(l => l.productId)
-      const products   = await app.prisma.product.findMany({
-        where: { id: { in: productIds } }, select: { id: true, weightG: true },
-      })
-
-      if (products.length !== productIds.length) {
-        const foundIds   = products.map(p => p.id)
-        const missingIds = productIds.filter(id => !foundIds.includes(id))
-        return badRequest(reply, `Products not found: ${missingIds.join(', ')}`)
-      }
-
-      const weightMap    = new Map(products.map(p => [p.id, p.weightG ?? 0]))
-      const subtotal     = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
-      const totalWeightKg = lines.reduce((s, l) => s + (weightMap.get(l.productId) ?? 0) * l.qty, 0) / 1000
-      const rate         = deliveryType === 'fast' ? 11 : 7
-      const total        = subtotal + totalWeightKg * rate + (homeDelivery ? 1 : 0)
-
-    const order = await app.prisma.order.create({
-       data: { customerId: user.sub, total, note, deliveryType, homeDelivery, lines: { create: lines } },
-      include: { customer: true, lines: { include: { product: { include: { category: true } } } } },
+    const productIds = lines.map(l => l.productId)
+    const products   = await app.prisma.product.findMany({
+      where:  { id: { in: productIds } },
+      select: { id: true, weightG: true, stock: true },
     })
 
+    if (products.length !== productIds.length) {
+      const foundIds   = products.map(p => p.id)
+      const missingIds = productIds.filter(id => !foundIds.includes(id))
+      return badRequest(reply, `Products not found: ${missingIds.join(', ')}`)
+    }
+
+    const weightMap     = new Map(products.map(p => [p.id, p.weightG ?? 0]))
+    const subtotal      = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
+    const totalWeightKg = lines.reduce((s, l) => s + (weightMap.get(l.productId) ?? 0) * l.qty, 0) / 1000
+    const rate          = deliveryType === 'fast' ? 11 : 7
+    const total         = subtotal + totalWeightKg * rate + (homeDelivery ? 1 : 0)
+
+    let order
+    try {
+      order = await app.prisma.$transaction(async (tx) => {
+        // 1. Check stock
+        for (const line of lines) {
+          const product = products.find(p => p.id === line.productId)!
+          if (product.stock < line.qty) {
+            throw new Error(`Insufficient stock for product ${line.productId}`)
+          }
+        }
+
+        // 2. Create order
+        const created = await tx.order.create({
+          data:    { customerId: user.sub, total, note, deliveryType, homeDelivery, lines: { create: lines } },
+          include: { customer: true, lines: { include: { product: { include: { category: true } } } } },
+        })
+
+        // 3. Deduct stock + increment sold
+        await Promise.all(lines.map(line =>
+          tx.product.update({
+            where: { id: line.productId },
+            data:  { stock: { decrement: line.qty }, sold: { increment: line.qty } },
+          })
+        ))
+
+        return created
+      })
+    } catch (e: any) {
+      if (e.message?.includes('Insufficient stock')) {
+        return badRequest(reply, e.message)
+      }
+      throw e
+    }
+
     return reply.code(201).send(order)
+  })
+
+  // ── PATCH /api/v1/customer/me ──────────────────────────────────────────────
+  app.patch('/me', {
+    onRequest: [app.authenticate],
+    rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
+  }, async (req, reply) => {
+    const user = req.user as any
+    if (user.role !== 'CUSTOMER') return unauthorized(reply, 'Customer token required')
+
+    const body = req.body as any
+
+    // Password change
+    if (body.currentPassword || body.newPassword) {
+      const customer = await app.prisma.customer.findUnique({ where: { id: user.sub } })
+      if (!customer) return notFound(reply, 'Customer')
+      if (customer.passwordHash !== hashPw(body.currentPassword)) {
+        return unauthorized(reply, 'Current password is incorrect')
+      }
+      await app.prisma.customer.update({
+        where: { id: user.sub },
+        data:  { passwordHash: hashPw(body.newPassword) },
+      })
+      return reply.send({ ok: true })
+    }
+
+    // Profile update
+    const { name, phone, address, email } = body
+    if (email) {
+      const exists = await app.prisma.customer.findUnique({ where: { email } })
+      if (exists && exists.id !== user.sub) return conflict(reply, 'Email already in use')
+    }
+    const updated = await app.prisma.customer.update({
+      where:  { id: user.sub },
+      data:   { name, phone, address, email },
+      select: { id: true, name: true, email: true, phone: true, address: true },
+    })
+    return reply.send(updated)
   })
 }

@@ -1,10 +1,10 @@
 import { PrismaClient, ProductStatus, CustomerStatus, OrderStatus } from '@prisma/client'
-import { createHash } from 'crypto'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
 function hashPw(pw: string) {
-  return createHash('sha256').update(pw).digest('hex')
+  return bcrypt.hashSync(pw, 10)  // ← use this
 }
 
 async function main() {

@@ -42,7 +42,7 @@ export const ProductQuerySchema = z.object({
   status:   z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),
   search:   z.string().optional(),
   category: z.string().optional(),
-  sort: z.enum(['newest', 'price_asc', 'price_desc', 'popular', 'random']).optional().default('random'),
+  sort: z.enum(['newest', 'price_asc', 'price_desc', 'popular', 'random']).optional().default('newest'),
   exclude:  z.string().optional(),
   page:     z.coerce.number().int().positive().default(1),
   limit:    z.coerce.number().int().positive().max(100).default(20),
@@ -76,10 +76,11 @@ export const OrderQuerySchema = z.object({
 
 // ─── Customers ────────────────────────────────────────────────────────────────
 export const CustomerCreateSchema = z.object({
-  name:    z.string().min(1),
-  email:   z.string().email(),
-  phone:   z.string().min(1),
-  address: z.string().min(1),
+  name:     z.string().min(1),
+  email:    z.string().email(),
+  phone:    z.string().min(1),
+  address:  z.string().min(1),
+  password: z.string().min(8),  // ← add this
 })
 export const CustomerUpdateSchema = z.object({
   name:    z.string().min(1).optional(),

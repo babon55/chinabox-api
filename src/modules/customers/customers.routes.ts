@@ -1,7 +1,12 @@
 import type { FastifyInstance } from 'fastify'
+import { createHash } from 'crypto'
 import { CustomerCreateSchema, CustomerUpdateSchema, CustomerQuerySchema } from '../../shared/types.js'
 import { badRequest, notFound, conflict } from '../../shared/errors.js'
 import { config } from '../../config.js'
+
+function hashPw(pw: string) {
+  return createHash('sha256').update(pw).digest('hex')
+}
 
 export default async function customersRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
@@ -73,9 +78,14 @@ export default async function customersRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const parsed = CustomerCreateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
+
     const exists = await app.prisma.customer.findUnique({ where: { email: parsed.data.email } })
     if (exists) return conflict(reply, 'Email already in use')
-    const customer = await app.prisma.customer.create({ data: parsed.data })
+
+    const { password, ...rest } = parsed.data
+    const customer = await app.prisma.customer.create({
+      data: { ...rest, passwordHash: hashPw(password) },
+    })
     return reply.code(201).send(customer)
   })
 
