@@ -31,6 +31,7 @@ export default async function customersRoutes(app: FastifyInstance) {
       } : {}),
     }
 
+    // FIX: was N+1 (1 query per customer for totalSpent) → now 2 queries total
     const [items, total] = await Promise.all([
       app.prisma.customer.findMany({
         where,
@@ -42,13 +43,15 @@ export default async function customersRoutes(app: FastifyInstance) {
       app.prisma.customer.count({ where }),
     ])
 
-    const enriched = await Promise.all(items.map(async c => {
-      const agg = await app.prisma.order.aggregate({
-        where: { customerId: c.id, status: { not: 'CANCELLED' } },
-        _sum:  { total: true },
-      })
-      return { ...c, totalSpent: Number(agg._sum.total ?? 0) }
-    }))
+    // Single groupBy replaces N individual aggregates
+    const spentRows = await app.prisma.order.groupBy({
+      by:    ['customerId'],
+      where: { customerId: { in: items.map(c => c.id) }, status: { not: 'CANCELLED' } },
+      _sum:  { total: true },
+    })
+    const spentMap = new Map(spentRows.map(r => [r.customerId, Number(r._sum.total ?? 0)]))
+
+    const enriched = items.map(c => ({ ...c, totalSpent: spentMap.get(c.id) ?? 0 }))
 
     return reply.send({ items: enriched, total, page, limit, pages: Math.ceil(total / limit) })
   })
@@ -58,16 +61,21 @@ export default async function customersRoutes(app: FastifyInstance) {
     ...guard,
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
   }, async (req, reply) => {
-    const { id }   = req.params as { id: string }
-    const customer = await app.prisma.customer.findUnique({
-      where:   { id },
-      include: { orders: { orderBy: { createdAt: 'desc' }, select: { id: true, total: true, status: true, createdAt: true } } },
-    })
+    const { id } = req.params as { id: string }
+
+    // FIX: run aggregate in parallel with the main query instead of sequentially
+    const [customer, agg] = await Promise.all([
+      app.prisma.customer.findUnique({
+        where:   { id },
+        include: { orders: { orderBy: { createdAt: 'desc' }, select: { id: true, total: true, status: true, createdAt: true } } },
+      }),
+      app.prisma.order.aggregate({
+        where: { customerId: id, status: { not: 'CANCELLED' } },
+        _sum:  { total: true },
+      }),
+    ])
+
     if (!customer) return notFound(reply, 'Customer')
-    const agg = await app.prisma.order.aggregate({
-      where: { customerId: id, status: { not: 'CANCELLED' } },
-      _sum:  { total: true },
-    })
     return reply.send({ ...customer, totalSpent: Number(agg._sum.total ?? 0) })
   })
 
@@ -97,14 +105,20 @@ export default async function customersRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string }
     const parsed = CustomerUpdateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
-    const exists = await app.prisma.customer.findUnique({ where: { id } })
-    if (!exists) return notFound(reply, 'Customer')
-    if (parsed.data.email && parsed.data.email !== exists.email) {
+
+    // FIX: skip existence check; catch P2025 instead of 2 round-trips
+    if (parsed.data.email) {
       const emailTaken = await app.prisma.customer.findUnique({ where: { email: parsed.data.email } })
-      if (emailTaken) return conflict(reply, 'Email already in use')
+      if (emailTaken && emailTaken.id !== id) return conflict(reply, 'Email already in use')
     }
-    const customer = await app.prisma.customer.update({ where: { id }, data: parsed.data })
-    return reply.send(customer)
+
+    try {
+      const customer = await app.prisma.customer.update({ where: { id }, data: parsed.data })
+      return reply.send(customer)
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Customer')
+      throw e
+    }
   })
 
   // DELETE /api/v1/customers/:id
@@ -113,9 +127,14 @@ export default async function customersRoutes(app: FastifyInstance) {
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
   }, async (req, reply) => {
     const { id } = req.params as { id: string }
-    const exists = await app.prisma.customer.findUnique({ where: { id } })
-    if (!exists) return notFound(reply, 'Customer')
-    await app.prisma.customer.delete({ where: { id } })
-    return reply.code(204).send()
+
+    // FIX: delete directly, catch P2025 — removes 1 unnecessary DB round-trip
+    try {
+      await app.prisma.customer.delete({ where: { id } })
+      return reply.code(204).send()
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Customer')
+      throw e
+    }
   })
 }

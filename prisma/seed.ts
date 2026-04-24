@@ -36,7 +36,7 @@ async function main() {
   const cats = await Promise.all([
     prisma.category.upsert({ where: { id: 'cat-1' }, update: {}, create: { id: 'cat-1', nameTk: 'Elektronika', nameRu: 'Электроника' } }),
     prisma.category.upsert({ where: { id: 'cat-2' }, update: {}, create: { id: 'cat-2', nameTk: 'Aksesuar',    nameRu: 'Аксессуары'  } }),
-    prisma.category.upsert({ where: { id: 'cat-3' }, update: {}, create: { id: 'cat-3', nameTk: 'Egin-eşik',  nameRu: 'Одежда'      } }),
+    prisma.category.upsert({ where: { id: 'cat-3' }, update: { nameTk: 'Egin-eşik', nameRu: 'Одежда' }, create: { id: 'cat-3', nameTk: 'Egin-eşik',  nameRu: 'Одежда'      } }),
     prisma.category.upsert({ where: { id: 'cat-4' }, update: {}, create: { id: 'cat-4', nameTk: 'Gözellik',   nameRu: 'Красота'     } }),
     prisma.category.upsert({ where: { id: 'cat-5' }, update: {}, create: { id: 'cat-5', nameTk: 'Öý üçin',   nameRu: 'Для дома'    } }),
   ])

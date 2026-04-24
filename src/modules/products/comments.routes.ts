@@ -11,7 +11,42 @@ const CreateCommentSchema = z.object({
 export default async function commentsRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
-  // GET /api/v1/products/:id/comments — PUBLIC
+  // ── ADMIN: GET /api/v1/products/comments/all ──────────────────────────────
+  // ⚠️ Must be FIRST — before /:id routes or Fastify treats "comments" as :id
+  app.get('/comments/all', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.products.max, timeWindow: config.rateLimits.products.timeWindow }
+  }, async (req, reply) => {
+    const user = req.user as any
+    if (user.role !== 'ADMIN') return unauthorized(reply, 'Admin only')
+
+    const { productId, page = '1', limit = '20' } = req.query as {
+      productId?: string
+      page?:      string
+      limit?:     string
+    }
+
+    const where = productId ? { productId } : {}
+    const skip  = (Number(page) - 1) * Number(limit)
+
+    const [comments, total] = await Promise.all([
+      (app.prisma as any).comment.findMany({
+        where,
+        include: {
+          customer: { select: { id: true, name: true } },
+          product:  { select: { id: true, nameTk: true, nameRu: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: Number(limit),
+      }),
+      (app.prisma as any).comment.count({ where }),
+    ])
+
+    return reply.send({ comments, total, page: Number(page), limit: Number(limit) })
+  })
+
+  // ── PUBLIC: GET /api/v1/products/:id/comments ─────────────────────────────
   app.get('/:id/comments', {
     rateLimit: { max: config.rateLimits.products.max, timeWindow: config.rateLimits.products.timeWindow }
   }, async (req, reply) => {
@@ -23,7 +58,6 @@ export default async function commentsRoutes(app: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
     })
 
-    // Aggregate rating
     const total = comments.length
     const avg   = total > 0
       ? comments.reduce((s: number, c: any) => s + c.rating, 0) / total
@@ -32,7 +66,7 @@ export default async function commentsRoutes(app: FastifyInstance) {
     return reply.send({ comments, total, avgRating: Math.round(avg * 10) / 10 })
   })
 
-  // POST /api/v1/products/:id/comments — Customer JWT required
+  // ── CUSTOMER: POST /api/v1/products/:id/comments ──────────────────────────
   app.post('/:id/comments', {
     ...guard,
     rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
@@ -44,15 +78,10 @@ export default async function commentsRoutes(app: FastifyInstance) {
     const parsed  = CreateCommentSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
 
-    // Check product exists
     const product = await app.prisma.product.findUnique({ where: { id } })
     if (!product) return notFound(reply, 'Product')
 
-    // One comment per customer per product
-    const existing = await (app.prisma as any).comment.findFirst({
-      where: { productId: id, customerId: user.sub },
-    })
-    if (existing) return badRequest(reply, 'You have already reviewed this product')
+    // ✅ Removed: one-comment-per-customer check (multiple reviews now allowed)
 
     const comment = await (app.prisma as any).comment.create({
       data: {
@@ -67,7 +96,7 @@ export default async function commentsRoutes(app: FastifyInstance) {
     return reply.code(201).send(comment)
   })
 
-  // DELETE /api/v1/products/:id/comments/:commentId — own comment only
+  // ── DELETE /api/v1/products/:id/comments/:commentId ───────────────────────
   app.delete('/:id/comments/:commentId', {
     ...guard,
     rateLimit: { max: config.rateLimits.customer.max, timeWindow: config.rateLimits.customer.timeWindow }
