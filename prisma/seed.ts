@@ -12,11 +12,11 @@ async function main() {
 
   // ── Admin user ─────────────────────────────────────────────────────────────
  await prisma.user.upsert({
-  where:  { email: 'admin@silkshop.tm' },
+  where:  { email: 'admin@chinaexpress.tm' },
   update: { passwordHash: hashPw('admin123') },  // ← add this
   create: {
     name:         'Admin',
-    email:        'admin@silkshop.tm',
+    email:        'admin@chinaexpress.tm',
     passwordHash: hashPw('admin123'),
     role:         'ADMIN',
     avatar:       '👨‍💼',

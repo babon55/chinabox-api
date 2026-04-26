@@ -1,12 +1,10 @@
 import type { FastifyInstance } from 'fastify'
-import { createHash } from 'crypto'
+import bcrypt from 'bcrypt'
 import { CustomerCreateSchema, CustomerUpdateSchema, CustomerQuerySchema } from '../../shared/types.js'
 import { badRequest, notFound, conflict } from '../../shared/errors.js'
 import { config } from '../../config.js'
 
-function hashPw(pw: string) {
-  return createHash('sha256').update(pw).digest('hex')
-}
+function hashPw(pw: string) { return bcrypt.hashSync(pw, 10) }
 
 export default async function customersRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
@@ -51,7 +49,10 @@ export default async function customersRoutes(app: FastifyInstance) {
     })
     const spentMap = new Map(spentRows.map(r => [r.customerId, Number(r._sum.total ?? 0)]))
 
-    const enriched = items.map(c => ({ ...c, totalSpent: spentMap.get(c.id) ?? 0 }))
+    const enriched = items.map(c => {
+      const { passwordHash: _, ...safe } = c as any
+      return { ...safe, totalSpent: spentMap.get(c.id) ?? 0 }
+    })
 
     return reply.send({ items: enriched, total, page, limit, pages: Math.ceil(total / limit) })
   })
@@ -76,7 +77,8 @@ export default async function customersRoutes(app: FastifyInstance) {
     ])
 
     if (!customer) return notFound(reply, 'Customer')
-    return reply.send({ ...customer, totalSpent: Number(agg._sum.total ?? 0) })
+    const { passwordHash: _, ...safeCustomer } = customer as any
+    return reply.send({ ...safeCustomer, totalSpent: Number(agg._sum.total ?? 0) }) 
   })
 
   // POST /api/v1/customers

@@ -1,13 +1,12 @@
 import type { FastifyInstance } from 'fastify'
-import { createHash } from 'crypto'
+import bcrypt from 'bcrypt'
 import { z } from 'zod'
 import { config } from '../../config.js'
 import { CustomerRegisterSchema, CustomerLoginSchema } from '../../shared/types.js'
 import { badRequest, unauthorized, notFound, conflict } from '../../shared/errors.js'
 
-function hashPw(pw: string) {
-  return createHash('sha256').update(pw).digest('hex')
-}
+function hashPw(pw: string)                 { return bcrypt.hashSync(pw, 10) }
+function verifyPw(pw: string, hash: string) { return bcrypt.compareSync(pw, hash) }
 
 const CustomerOrderLineSchema = z.object({
   productId: z.string().min(1),
@@ -59,7 +58,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     const { email, password } = parsed.data
 
     const customer = await (app.prisma.customer as any).findUnique({ where: { email } })
-    if (!customer || !customer.passwordHash || customer.passwordHash !== hashPw(password)) {
+    if (!customer || !customer.passwordHash || !verifyPw(password, customer.passwordHash)) {
       return unauthorized(reply, 'Invalid email or password')
     }
     if (customer.status === 'BLOCKED') return unauthorized(reply, 'Account is blocked')
@@ -216,7 +215,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     if (body.currentPassword || body.newPassword) {
       const customer = await app.prisma.customer.findUnique({ where: { id: user.sub } })
       if (!customer) return notFound(reply, 'Customer')
-      if (customer.passwordHash !== hashPw(body.currentPassword)) {
+      if (!customer.passwordHash || !verifyPw(body.currentPassword, customer.passwordHash)) {
         return unauthorized(reply, 'Current password is incorrect')
       }
       await app.prisma.customer.update({

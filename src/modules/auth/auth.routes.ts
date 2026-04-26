@@ -1,16 +1,15 @@
 import type { FastifyInstance } from 'fastify'
-import { createHash } from 'crypto'
 import { config } from '../../config.js'
 import { LoginSchema, RefreshSchema, PasswordChangeSchema } from '../../shared/types.js'
 import { badRequest, unauthorized, notFound } from '../../shared/errors.js'
+import bcrypt from 'bcrypt'
 
 function hashPw(pw: string) {
-  return createHash('sha256').update(pw).digest('hex')
+  return bcrypt.hashSync(pw, 10)
 }
 
 export default async function authRoutes(app: FastifyInstance) {
 
-  // POST /api/v1/auth/login - limit to prevent brute force
   app.post('/login', {
     rateLimit: { max: config.rateLimits.auth.max, timeWindow: config.rateLimits.auth.timeWindow }
   }, async (req, reply) => {
@@ -19,7 +18,8 @@ export default async function authRoutes(app: FastifyInstance) {
     const { email, password } = parsed.data
 
     const user = await app.prisma.user.findUnique({ where: { email } })
-    if (!user || user.passwordHash !== hashPw(password)) {
+    // ✅ use compareSync instead of !==
+    if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
       return unauthorized(reply, 'Invalid email or password')
     }
 
@@ -39,7 +39,6 @@ export default async function authRoutes(app: FastifyInstance) {
     })
   })
 
-  // POST /api/v1/auth/refresh - limit to prevent abuse
   app.post('/refresh', {
     rateLimit: { max: config.rateLimits.refresh.max, timeWindow: config.rateLimits.refresh.timeWindow }
   }, async (req, reply) => {
@@ -72,7 +71,6 @@ export default async function authRoutes(app: FastifyInstance) {
     return reply.code(200).send({ accessToken: newAccessToken, refreshToken: newRefreshToken })
   })
 
-  // POST /api/v1/auth/logout
   app.post('/logout', {
     onRequest: [app.authenticate],
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
@@ -84,7 +82,6 @@ export default async function authRoutes(app: FastifyInstance) {
     return reply.code(204).send()
   })
 
-  // GET /api/v1/auth/me
   app.get('/me', {
     onRequest: [app.authenticate],
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
@@ -97,7 +94,6 @@ export default async function authRoutes(app: FastifyInstance) {
     return reply.code(200).send(user)
   })
 
-  // PATCH /api/v1/auth/me
   app.patch('/me', {
     onRequest: [app.authenticate],
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
@@ -109,7 +105,6 @@ export default async function authRoutes(app: FastifyInstance) {
     return reply.code(200).send(user)
   })
 
-  // POST /api/v1/auth/change-password
   app.post('/change-password', {
     onRequest: [app.authenticate],
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
@@ -120,7 +115,8 @@ export default async function authRoutes(app: FastifyInstance) {
 
     const user = await app.prisma.user.findUnique({ where: { id: (req.user as any).sub } })
     if (!user) return notFound(reply, 'User')
-    if (user.passwordHash !== hashPw(currentPassword)) {
+    // ✅ use compareSync instead of !==
+    if (!bcrypt.compareSync(currentPassword, user.passwordHash)) {
       return unauthorized(reply, 'Current password is incorrect')
     }
 
