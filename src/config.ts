@@ -58,7 +58,7 @@ export const config = {
       timeWindow: process.env.RATE_LIMIT_PUBLIC_UPLOAD_WINDOW ?? '1 minute',
     },
 
-    // Admin management endpoints (orders, customers, dashboard, analytics, settings, requests)
+    // Admin management endpoints (orders, customers, settings, requests)
     admin: {
       max: parseInt(process.env.RATE_LIMIT_ADMIN ?? '60'),
       timeWindow: process.env.RATE_LIMIT_ADMIN_WINDOW ?? '1 minute',

@@ -91,7 +91,7 @@ async function main() {
   for (const o of ordersData) {
     await prisma.order.upsert({
       where:  { id: o.id },
-      update: {},
+      update: { total: o.total },
       create: {
         id:         o.id,
         customerId: o.customerId,

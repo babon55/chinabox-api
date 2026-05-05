@@ -97,9 +97,6 @@ export const CustomerQuerySchema = z.object({
 })
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
-export const AnalyticsQuerySchema = z.object({
-  range: z.enum(['7d', '30d', '12m']).default('30d'),
-})
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 export const StoreSettingsSchema = z.object({

@@ -40,7 +40,7 @@ export default async function uploadRoutes(app: FastifyInstance) {
       const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
         const stream = app.cloudinary.uploader.upload_stream(
           {
-            folder: 'silkshop/products',
+            folder: 'chinaexpress/products',
             transformation: [
               { width: 800, height: 800, crop: 'limit' },
               { quality: 'auto', fetch_format: 'auto' },
@@ -93,7 +93,7 @@ export default async function uploadRoutes(app: FastifyInstance) {
       const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
         const stream = app.cloudinary.uploader.upload_stream(
           {
-            folder: 'silkshop/requests',
+            folder: 'chinaexpress/requests',
             transformation: [
               { width: 800, height: 800, crop: 'limit' },
               { quality: 'auto', fetch_format: 'auto' },

@@ -5,8 +5,8 @@ import { config } from '../../config.js'
 import { CustomerRegisterSchema, CustomerLoginSchema } from '../../shared/types.js'
 import { badRequest, unauthorized, notFound, conflict } from '../../shared/errors.js'
 
-function hashPw(pw: string)                 { return bcrypt.hashSync(pw, 10) }
-function verifyPw(pw: string, hash: string) { return bcrypt.compareSync(pw, hash) }
+async function hashPw(pw: string)                 { return bcrypt.hash(pw, 10) }
+async function verifyPw(pw: string, hash: string) { return bcrypt.compare(pw, hash) }
 
 const CustomerOrderLineSchema = z.object({
   productId: z.string().min(1),
@@ -36,12 +36,12 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     if (exists) return conflict(reply, 'Email already registered')
 
     const customer = await (app.prisma.customer as any).create({
-      data: { name, email, phone, address, passwordHash: hashPw(password) },
+      data: { name, email, phone, address, passwordHash: await hashPw(password) },
     })
 
     const payload      = { sub: customer.id, email: customer.email, role: 'CUSTOMER' }
     const accessToken  = app.jwt.sign({ ...payload, type: 'access'  }, { expiresIn: config.jwt.accessExpiresIn  })
-    const refreshToken = app.jwt.sign({ ...payload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn })
+    const refreshToken = app.jwt.sign({ ...payload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn, secret: config.jwt.refreshSecret })
 
     return reply.code(201).send({
       accessToken, refreshToken,
@@ -58,14 +58,14 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     const { email, password } = parsed.data
 
     const customer = await (app.prisma.customer as any).findUnique({ where: { email } })
-    if (!customer || !customer.passwordHash || !verifyPw(password, customer.passwordHash)) {
+    if (!customer || !customer.passwordHash || !await verifyPw(password, customer.passwordHash)) {
       return unauthorized(reply, 'Invalid email or password')
     }
     if (customer.status === 'BLOCKED') return unauthorized(reply, 'Account is blocked')
 
     const payload      = { sub: customer.id, email: customer.email, role: 'CUSTOMER' }
     const accessToken  = app.jwt.sign({ ...payload, type: 'access'  }, { expiresIn: config.jwt.accessExpiresIn  })
-    const refreshToken = app.jwt.sign({ ...payload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn })
+    const refreshToken = app.jwt.sign({ ...payload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn, secret: config.jwt.refreshSecret })
 
     return reply.code(200).send({
       accessToken, refreshToken,
@@ -82,7 +82,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
 
     let payload: any
     try {
-      payload = app.jwt.verify(refreshToken)
+      payload = app.jwt.verify(refreshToken, { secret: config.jwt.refreshSecret })
     } catch {
       return unauthorized(reply, 'Invalid or expired refresh token')
     }
@@ -97,7 +97,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
 
     const newPayload      = { sub: customer.id, email: customer.email, role: 'CUSTOMER' }
     const newAccessToken  = app.jwt.sign({ ...newPayload, type: 'access'  }, { expiresIn: config.jwt.accessExpiresIn  })
-    const newRefreshToken = app.jwt.sign({ ...newPayload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn })
+    const newRefreshToken = app.jwt.sign({ ...newPayload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn, secret: config.jwt.refreshSecret })
 
     return reply.send({ accessToken: newAccessToken, refreshToken: newRefreshToken })
   })
@@ -149,7 +149,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     const productIds = lines.map(l => l.productId)
     const products   = await app.prisma.product.findMany({
       where:  { id: { in: productIds } },
-      select: { id: true, weightG: true, stock: true },
+      select: { id: true, weightG: true, stock: true, price: true },
     })
 
     if (products.length !== productIds.length) {
@@ -161,8 +161,8 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     const weightMap     = new Map(products.map(p => [p.id, p.weightG ?? 0]))
     const subtotal      = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
     const totalWeightKg = lines.reduce((s, l) => s + (weightMap.get(l.productId) ?? 0) * l.qty, 0) / 1000
-    const rate          = deliveryType === 'fast' ? 11 : 7
-    const total         = subtotal + totalWeightKg * rate + (homeDelivery ? 1 : 0)
+    const rate          = deliveryType === 'fast' ? 140 : 60
+    const total         = subtotal + totalWeightKg * rate + (homeDelivery ? 20 : 0)
 
     let order
     try {
@@ -215,12 +215,12 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     if (body.currentPassword || body.newPassword) {
       const customer = await app.prisma.customer.findUnique({ where: { id: user.sub } })
       if (!customer) return notFound(reply, 'Customer')
-      if (!customer.passwordHash || !verifyPw(body.currentPassword, customer.passwordHash)) {
+      if (!customer.passwordHash || !await verifyPw(body.currentPassword, customer.passwordHash)) {
         return unauthorized(reply, 'Current password is incorrect')
       }
       await app.prisma.customer.update({
         where: { id: user.sub },
-        data:  { passwordHash: hashPw(body.newPassword) },
+        data:  { passwordHash: await hashPw(body.newPassword) },
       })
       return reply.send({ ok: true })
     }

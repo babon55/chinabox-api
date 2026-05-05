@@ -124,7 +124,7 @@ export default async function ordersRoutes(app: FastifyInstance) {
     if (!parsed.success) return badRequest(reply, parsed.error.message)
     const { customerId, lines, note, deliveryType, homeDelivery } = parsed.data
 
-    // FIX: single parallel query for customer + all products (was 2N+1 queries)
+    // FIX: single parallel query for customer + all products (was 2N+1 queries before)
     const productIds = [...new Set(lines.map(l => l.productId))]
     const [customer, products] = await Promise.all([
       app.prisma.customer.findUnique({ where: { id: customerId }, select: { id: true } }),
@@ -144,6 +144,7 @@ export default async function ordersRoutes(app: FastifyInstance) {
 
     const productMap = new Map(products.map(p => [p.id, p]))
 
+    // Validate required options using same productMap — no extra DB calls
     for (const line of lines) {
       const product = productMap.get(line.productId)!
       const optionsArray = Array.isArray(product.options)
@@ -159,10 +160,11 @@ export default async function ordersRoutes(app: FastifyInstance) {
       }
     }
 
+    // Calculate totals from productMap — no second DB fetch
     const subtotal      = lines.reduce((s, l) => s + l.qty * l.unitPrice, 0)
     const totalWeightKg = lines.reduce((s, l) => s + (productMap.get(l.productId)?.weightG ?? 0) * l.qty, 0) / 1000
-    const rate          = deliveryType === 'fast' ? 11 : 7
-    const total         = subtotal + totalWeightKg * rate + (homeDelivery ? 1 : 0)
+    const rate          = deliveryType === 'fast' ? 140 : 60
+    const total         = subtotal + totalWeightKg * rate + (homeDelivery ? 20 : 0)
 
     const order = await app.prisma.order.create({
       data:    { customerId, total, note, deliveryType, homeDelivery, lines: { create: lines } },

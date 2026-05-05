@@ -43,11 +43,11 @@ enum Role {
 
 model StoreSettings {
   id        String   @id @default("singleton")
-  nameTk    String   @default("SilkShop")
-  nameRu    String   @default("SilkShop")
+  nameTk    String   @default("chinaexpress")
+  nameRu    String   @default("chinaexpress")
   taglineTk String   @default("Iň gowy önümler")
   taglineRu String   @default("Лучшие товары")
-  email     String   @default("info@silkshop.tm")
+  email     String   @default("info@chinaexpress.tm")
   phone     String   @default("+993 12 123456")
   addressTk String   @default("Aşgabat, Türkmenistan")
   addressRu String   @default("Ашхабад, Туркменистан")

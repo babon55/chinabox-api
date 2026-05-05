@@ -19,7 +19,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: CustomerStatus; Type: TYPE; Schema: public; Owner: silkshop_user
+-- Name: CustomerStatus; Type: TYPE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TYPE public."CustomerStatus" AS ENUM (
@@ -28,10 +28,10 @@ CREATE TYPE public."CustomerStatus" AS ENUM (
 );
 
 
-ALTER TYPE public."CustomerStatus" OWNER TO silkshop_user;
+ALTER TYPE public."CustomerStatus" OWNER TO chinaexpress_user;
 
 --
--- Name: DeliveryType; Type: TYPE; Schema: public; Owner: silkshop_user
+-- Name: DeliveryType; Type: TYPE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TYPE public."DeliveryType" AS ENUM (
@@ -40,10 +40,10 @@ CREATE TYPE public."DeliveryType" AS ENUM (
 );
 
 
-ALTER TYPE public."DeliveryType" OWNER TO silkshop_user;
+ALTER TYPE public."DeliveryType" OWNER TO chinaexpress_user;
 
 --
--- Name: OrderStatus; Type: TYPE; Schema: public; Owner: silkshop_user
+-- Name: OrderStatus; Type: TYPE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TYPE public."OrderStatus" AS ENUM (
@@ -55,10 +55,10 @@ CREATE TYPE public."OrderStatus" AS ENUM (
 );
 
 
-ALTER TYPE public."OrderStatus" OWNER TO silkshop_user;
+ALTER TYPE public."OrderStatus" OWNER TO chinaexpress_user;
 
 --
--- Name: ProductRequestStatus; Type: TYPE; Schema: public; Owner: silkshop_user
+-- Name: ProductRequestStatus; Type: TYPE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TYPE public."ProductRequestStatus" AS ENUM (
@@ -69,10 +69,10 @@ CREATE TYPE public."ProductRequestStatus" AS ENUM (
 );
 
 
-ALTER TYPE public."ProductRequestStatus" OWNER TO silkshop_user;
+ALTER TYPE public."ProductRequestStatus" OWNER TO chinaexpress_user;
 
 --
--- Name: ProductStatus; Type: TYPE; Schema: public; Owner: silkshop_user
+-- Name: ProductStatus; Type: TYPE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TYPE public."ProductStatus" AS ENUM (
@@ -82,10 +82,10 @@ CREATE TYPE public."ProductStatus" AS ENUM (
 );
 
 
-ALTER TYPE public."ProductStatus" OWNER TO silkshop_user;
+ALTER TYPE public."ProductStatus" OWNER TO chinaexpress_user;
 
 --
--- Name: Role; Type: TYPE; Schema: public; Owner: silkshop_user
+-- Name: Role; Type: TYPE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TYPE public."Role" AS ENUM (
@@ -95,14 +95,14 @@ CREATE TYPE public."Role" AS ENUM (
 );
 
 
-ALTER TYPE public."Role" OWNER TO silkshop_user;
+ALTER TYPE public."Role" OWNER TO chinaexpress_user;
 
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: Category; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: Category; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."Category" (
@@ -115,10 +115,10 @@ CREATE TABLE public."Category" (
 );
 
 
-ALTER TABLE public."Category" OWNER TO silkshop_user;
+ALTER TABLE public."Category" OWNER TO chinaexpress_user;
 
 --
--- Name: Comment; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: Comment; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."Comment" (
@@ -132,10 +132,10 @@ CREATE TABLE public."Comment" (
 );
 
 
-ALTER TABLE public."Comment" OWNER TO silkshop_user;
+ALTER TABLE public."Comment" OWNER TO chinaexpress_user;
 
 --
--- Name: Customer; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: Customer; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."Customer" (
@@ -152,10 +152,10 @@ CREATE TABLE public."Customer" (
 );
 
 
-ALTER TABLE public."Customer" OWNER TO silkshop_user;
+ALTER TABLE public."Customer" OWNER TO chinaexpress_user;
 
 --
--- Name: Order; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: Order; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."Order" (
@@ -171,10 +171,10 @@ CREATE TABLE public."Order" (
 );
 
 
-ALTER TABLE public."Order" OWNER TO silkshop_user;
+ALTER TABLE public."Order" OWNER TO chinaexpress_user;
 
 --
--- Name: OrderLine; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: OrderLine; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."OrderLine" (
@@ -187,10 +187,10 @@ CREATE TABLE public."OrderLine" (
 );
 
 
-ALTER TABLE public."OrderLine" OWNER TO silkshop_user;
+ALTER TABLE public."OrderLine" OWNER TO chinaexpress_user;
 
 --
--- Name: Product; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: Product; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."Product" (
@@ -215,10 +215,10 @@ CREATE TABLE public."Product" (
 );
 
 
-ALTER TABLE public."Product" OWNER TO silkshop_user;
+ALTER TABLE public."Product" OWNER TO chinaexpress_user;
 
 --
--- Name: ProductRequest; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: ProductRequest; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."ProductRequest" (
@@ -237,10 +237,10 @@ CREATE TABLE public."ProductRequest" (
 );
 
 
-ALTER TABLE public."ProductRequest" OWNER TO silkshop_user;
+ALTER TABLE public."ProductRequest" OWNER TO chinaexpress_user;
 
 --
--- Name: RefreshToken; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: RefreshToken; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."RefreshToken" (
@@ -252,19 +252,19 @@ CREATE TABLE public."RefreshToken" (
 );
 
 
-ALTER TABLE public."RefreshToken" OWNER TO silkshop_user;
+ALTER TABLE public."RefreshToken" OWNER TO chinaexpress_user;
 
 --
--- Name: StoreSettings; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: StoreSettings; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."StoreSettings" (
     id text DEFAULT 'singleton'::text NOT NULL,
-    "nameTk" text DEFAULT 'SilkShop'::text NOT NULL,
-    "nameRu" text DEFAULT 'SilkShop'::text NOT NULL,
+    "nameTk" text DEFAULT 'chinaexpress'::text NOT NULL,
+    "nameRu" text DEFAULT 'chinaexpress'::text NOT NULL,
     "taglineTk" text DEFAULT 'Iň gowy önümler'::text NOT NULL,
     "taglineRu" text DEFAULT 'Лучшие товары'::text NOT NULL,
-    email text DEFAULT 'info@silkshop.tm'::text NOT NULL,
+    email text DEFAULT 'info@chinaexpress.tm'::text NOT NULL,
     phone text DEFAULT '+993 12 123456'::text NOT NULL,
     "addressTk" text DEFAULT 'Aşgabat, Türkmenistan'::text NOT NULL,
     "addressRu" text DEFAULT 'Ашхабад, Туркменистан'::text NOT NULL,
@@ -274,10 +274,10 @@ CREATE TABLE public."StoreSettings" (
 );
 
 
-ALTER TABLE public."StoreSettings" OWNER TO silkshop_user;
+ALTER TABLE public."StoreSettings" OWNER TO chinaexpress_user;
 
 --
--- Name: User; Type: TABLE; Schema: public; Owner: silkshop_user
+-- Name: User; Type: TABLE; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE TABLE public."User" (
@@ -295,10 +295,10 @@ CREATE TABLE public."User" (
 );
 
 
-ALTER TABLE public."User" OWNER TO silkshop_user;
+ALTER TABLE public."User" OWNER TO chinaexpress_user;
 
 --
--- Data for Name: Category; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: Category; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."Category" (id, "nameTk", "nameRu", "createdAt", "parentId", "imageUrl") FROM stdin;
@@ -314,7 +314,7 @@ cmo79isjm0003enfuus7uborg	sa	sa	2026-04-20 14:00:42.754	cat-3	\N
 
 
 --
--- Data for Name: Comment; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: Comment; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."Comment" (id, "productId", "customerId", rating, text, "createdAt", "updatedAt") FROM stdin;
@@ -326,7 +326,7 @@ cmo4rj7zs0003tqlr82lpitrg	cmmxhqnlr0001tcacoxizwb0v	cmmyjcyvf000440c7xv6t3akr	3	
 
 
 --
--- Data for Name: Customer; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: Customer; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."Customer" (id, name, email, phone, address, status, "createdAt", "updatedAt", "passwordHash", "googleId") FROM stdin;
@@ -347,7 +347,7 @@ cmmyjcyvf000440c7xv6t3akr	Babanazar Jumadurdyyev	babanazarjumadurdyyev@gmail.com
 
 
 --
--- Data for Name: Order; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: Order; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."Order" (id, "customerId", total, status, note, "createdAt", "updatedAt", "deliveryType", "homeDelivery") FROM stdin;
@@ -391,7 +391,7 @@ cmoafbp7l00078h7jwlsxx8yc	cmmyjcyvf000440c7xv6t3akr	18.00	PENDING	\N	2026-04-22 
 
 
 --
--- Data for Name: OrderLine; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: OrderLine; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."OrderLine" (id, "orderId", "productId", qty, "unitPrice", options) FROM stdin;
@@ -446,7 +446,7 @@ cmoafbp7l00098h7jg0p027km	cmoafbp7l00078h7jwlsxx8yc	cmo77zwxv0001enfuuqjrmt8j	1	
 
 
 --
--- Data for Name: Product; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: Product; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."Product" (id, "nameTk", "nameRu", "categoryId", image, price, stock, sold, status, "createdAt", "updatedAt", "imageUrl", "weightG", options, "imageUrls", markup, "descriptionRu", "descriptionTk") FROM stdin;
@@ -462,38 +462,38 @@ prd-008	Sport Köwüş Nike	Кроссовки Nike	cat-3	👟	79.99	34	210	DRAF
 prd-009	Ýüz Kremi	Крем для лица	cat-4	🧴	15.00	55	88	ACTIVE	2026-03-12 13:51:55.714	2026-03-12 13:51:55.714	\N	\N	[]	{}	50	\N	\N
 cmmp2vmn20003pgmvku737f3a	lk	klj	cat-2	📦	55.00	0	0	ACTIVE	2026-03-13 15:55:10.814	2026-03-13 15:55:33.159	\N	\N	[]	{}	50	\N	\N
 cmmp33qti00059bd6tigml08f	bro	bro	cat-2	📦	55.00	0	0	DRAFT	2026-03-13 16:01:29.477	2026-03-14 19:57:31.911	\N	\N	[]	{}	50	\N	\N
-cmnsccxps00034ei1hssff5a0	wsq	wsq	cat-3	📦	12.00	12	0	ACTIVE	2026-04-10 03:23:35.714	2026-04-10 03:23:35.714	https://res.cloudinary.com/dlphot301/image/upload/v1775784130/silkshop/products/jzfrqpgtmwc6fg6hcnnr.png	222	[]	{https://res.cloudinary.com/dlphot301/image/upload/v1775784130/silkshop/products/jzfrqpgtmwc6fg6hcnnr.png,https://res.cloudinary.com/dlphot301/image/upload/v1775784131/silkshop/products/vx4ozbgvxckep53aeylj.png}	50	\N	\N
+cmnsccxps00034ei1hssff5a0	wsq	wsq	cat-3	📦	12.00	12	0	ACTIVE	2026-04-10 03:23:35.714	2026-04-10 03:23:35.714	https://res.cloudinary.com/dlphot301/image/upload/v1775784130/chinaexpress/products/jzfrqpgtmwc6fg6hcnnr.png	222	[]	{https://res.cloudinary.com/dlphot301/image/upload/v1775784130/chinaexpress/products/jzfrqpgtmwc6fg6hcnnr.png,https://res.cloudinary.com/dlphot301/image/upload/v1775784131/chinaexpress/products/vx4ozbgvxckep53aeylj.png}	50	\N	\N
 cmmrezgki00053t5pd5gnz9y4	23	32	cat-2	📦	32.00	0	0	ACTIVE	2026-03-15 07:09:37.313	2026-03-15 07:09:37.313	\N	\N	[]	{}	50	\N	\N
-cmmtc0f3g0003xie5f50g78s2	edw	dewref	cat-2	📦	12.00	0	0	ACTIVE	2026-03-16 15:21:55.564	2026-03-16 15:38:56.251	https://res.cloudinary.com/dlphot301/image/upload/v1773668299/silkshop/products/bvxygyqer0tuvlnkwcsy.jpg	222	[]	{}	50	\N	\N
+cmmtc0f3g0003xie5f50g78s2	edw	dewref	cat-2	📦	12.00	0	0	ACTIVE	2026-03-16 15:21:55.564	2026-03-16 15:38:56.251	https://res.cloudinary.com/dlphot301/image/upload/v1773668299/chinaexpress/products/bvxygyqer0tuvlnkwcsy.jpg	222	[]	{}	50	\N	\N
 cmmwbo8ee0003d8omuluph03e	ds	asd	cat-2	📦	12.00	0	0	ACTIVE	2026-03-18 17:35:45.542	2026-03-18 17:35:45.542	\N	222	[]	{}	50	\N	\N
-cmng4akb000015zyzlfs7bhts	dqw	qdw	cat-2	📦	12.00	23	0	ACTIVE	2026-04-01 14:04:33.992	2026-04-01 14:05:18.929	https://res.cloudinary.com/dlphot301/image/upload/v1775045005/silkshop/products/ifyj8ypvevpml814kpqw.png	\N	[]	{}	50	\N	\N
-cmnsvp4y30003uiz65kos1f8m	wqd	wqd	cat-3	📦	21.00	21	0	ACTIVE	2026-04-10 12:24:57.675	2026-04-10 12:24:57.675	https://res.cloudinary.com/dlphot301/image/upload/v1775816611/silkshop/products/u28vioj23raudr7q1oxl.png	144	[{"id": "0663acd2-d6e6-4eb1-86a5-62bc3598fa5c", "type": "select", "nameRu": "Цвет", "nameTk": "Reňk", "values": ["Akat", "Ak", "Gyzyl", "Gök", "Ýaşil", "Sary", "Gülgün", "Çal"], "required": true}]	{https://res.cloudinary.com/dlphot301/image/upload/v1775816611/silkshop/products/u28vioj23raudr7q1oxl.png,https://res.cloudinary.com/dlphot301/image/upload/v1775816611/silkshop/products/plkqmmplj6fcwjkx8hau.png}	50	\N	\N
+cmng4akb000015zyzlfs7bhts	dqw	qdw	cat-2	📦	12.00	23	0	ACTIVE	2026-04-01 14:04:33.992	2026-04-01 14:05:18.929	https://res.cloudinary.com/dlphot301/image/upload/v1775045005/chinaexpress/products/ifyj8ypvevpml814kpqw.png	\N	[]	{}	50	\N	\N
+cmnsvp4y30003uiz65kos1f8m	wqd	wqd	cat-3	📦	21.00	21	0	ACTIVE	2026-04-10 12:24:57.675	2026-04-10 12:24:57.675	https://res.cloudinary.com/dlphot301/image/upload/v1775816611/chinaexpress/products/u28vioj23raudr7q1oxl.png	144	[{"id": "0663acd2-d6e6-4eb1-86a5-62bc3598fa5c", "type": "select", "nameRu": "Цвет", "nameTk": "Reňk", "values": ["Akat", "Ak", "Gyzyl", "Gök", "Ýaşil", "Sary", "Gülgün", "Çal"], "required": true}]	{https://res.cloudinary.com/dlphot301/image/upload/v1775816611/chinaexpress/products/u28vioj23raudr7q1oxl.png,https://res.cloudinary.com/dlphot301/image/upload/v1775816611/chinaexpress/products/plkqmmplj6fcwjkx8hau.png}	50	\N	\N
 cmnx9aem8000135w97boss11i	ewfe	efw	cat-3	📦	23.00	21	0	ACTIVE	2026-04-13 13:56:29.696	2026-04-13 13:56:29.696	\N	233	[{"id": "91e8f62b-e3c8-4185-bfeb-9430aaab7b19", "type": "select", "nameRu": "Цвет", "nameTk": "Reňk", "values": ["Akat", "Ak", "Gyzyl", "Gök", "Ýaşil", "Sary", "Gülgün", "Çal"], "required": true}]	{}	50	few	few
-cmniz413r0003t28x3tfeled6	test	test	cat-3	📦	55.00	55	0	ACTIVE	2026-04-03 14:02:49.623	2026-04-03 15:12:39.959	https://res.cloudinary.com/dlphot301/image/upload/v1775217697/silkshop/products/ncy61cbbkhilsmqaq86c.png	55	[{"id": "bfb655ea-2c79-4c25-895a-1ce6f67008d2", "type": "select", "nameRu": "Цвет", "nameTk": "Reňk", "values": ["Akat", "Ak", "Gyzyl", "Gök", "Ýaşil", "Sary", "Gülgün", "Çal"], "required": true}, {"id": "1f973290-cf9c-4112-9cd7-d4ca67c9f9f0", "type": "select", "nameRu": "Размер", "nameTk": "Ölçeg", "values": ["XS", "S", "M", "L", "XL", "XXL"], "required": true}, {"id": "bc56268c-d6f5-4e82-a6aa-35dc9a613387", "type": "number", "unit": "EU", "nameRu": "Размер", "nameTk": "Ölçeg", "values": [], "required": true}]	{}	50	\N	\N
-cmnlbtc7p000jxdgt44yt6zgd	wqd	qdw	cat-3	📦	34.00	45	0	ACTIVE	2026-04-05 05:33:58.166	2026-04-05 05:33:58.166	https://res.cloudinary.com/dlphot301/image/upload/v1775359962/silkshop/products/krnxqsxanoz5nbd89fgj.png	34	[{"id": "54a2e44d-590c-4985-ab59-daf83e088896", "type": "number", "unit": "EU", "nameRu": "Размер", "nameTk": "Ölçeg", "values": [], "required": true}, {"id": "70e1932f-8419-42bc-994a-4b75b0ae615c", "type": "select", "nameRu": "Размер", "nameTk": "Ölçeg", "values": ["XS", "S", "M", "L", "XL", "XXL"], "required": true}, {"id": "dd93b518-5a55-4939-b6e2-761723889aea", "type": "select", "nameRu": "Цвет", "nameTk": "Reňk", "values": ["Akat", "Ak", "Gyzyl", "Gök", "Ýaşil", "Sary", "Gülgün", "Çal"], "required": true}]	{}	50	\N	\N
-cmnq8dc8n0003oo8c320vwpxt	wq	wqd	cat-3	📦	20.00	20	0	DRAFT	2026-04-08 15:56:23.729	2026-04-08 15:56:23.729	https://res.cloudinary.com/dlphot301/image/upload/v1775656502/silkshop/products/myhwemk5tq5lk54wadvs.png	22	[]	{}	50	\N	\N
-cmnq8e4of0005oo8cgbjsd0mm	wdq	dqw	cat-3	📦	50.00	23	0	ACTIVE	2026-04-08 15:57:00.591	2026-04-08 19:56:13.9	https://res.cloudinary.com/dlphot301/image/upload/v1775656539/silkshop/products/z8fi9fwr4rqv2hkejxyp.png	500	[]	{}	50	\N	\N
-cmo79jlw90005enfuj2x0is3u	weeds	sdsdds	cmo79isjm0003enfuus7uborg	📦	45.00	43	0	ACTIVE	2026-04-20 14:01:20.793	2026-04-20 14:01:20.793	https://res.cloudinary.com/dlphot301/image/upload/v1776686376/silkshop/products/euwpgslarfmkjotsfeym.png	3443	[]	{https://res.cloudinary.com/dlphot301/image/upload/v1776686376/silkshop/products/euwpgslarfmkjotsfeym.png}	50	\N	\N
-cmo77zwxv0001enfuuqjrmt8j	test esik	test esik	cmo4d3lqr0001cz6fcyy0gga0	📦	12.00	0	1	ACTIVE	2026-04-20 13:18:02.371	2026-04-22 19:06:28.071	https://res.cloudinary.com/dlphot301/image/upload/v1776683777/silkshop/products/fu3qwsiq5qjewuyvcw3k.png	\N	[]	{https://res.cloudinary.com/dlphot301/image/upload/v1776683777/silkshop/products/fu3qwsiq5qjewuyvcw3k.png}	50	\N	\N
-cmmxhqnlr0001tcacoxizwb0v	das	dea	cat-3	📦	12.00	11	1	ACTIVE	2026-03-19 13:13:22.431	2026-04-21 16:56:23.583	https://res.cloudinary.com/dlphot301/image/upload/v1773918758/silkshop/products/kezxl6jiedgpnlp1tcfd.jpg	122	[]	{}	50	\N	\N
-cmo4d4y6y0003cz6ft6f8x0k4	salam	salam	cmo4d3lqr0001cz6fcyy0gga0	📦	55.00	53	2	ACTIVE	2026-04-18 13:18:36.826	2026-04-22 19:06:11.291	https://res.cloudinary.com/dlphot301/image/upload/v1776511016/silkshop/products/pafdeilvrhtadpi26dsl.jpg	55	[{"id": "4db6b7b1-614b-43ab-bc22-3fab0b17750f", "type": "number", "unit": "EU", "nameRu": "Размер", "nameTk": "Ölçeg", "values": [], "required": true}]	{https://res.cloudinary.com/dlphot301/image/upload/v1776511016/silkshop/products/pafdeilvrhtadpi26dsl.jpg}	50	salam	salam
+cmniz413r0003t28x3tfeled6	test	test	cat-3	📦	55.00	55	0	ACTIVE	2026-04-03 14:02:49.623	2026-04-03 15:12:39.959	https://res.cloudinary.com/dlphot301/image/upload/v1775217697/chinaexpress/products/ncy61cbbkhilsmqaq86c.png	55	[{"id": "bfb655ea-2c79-4c25-895a-1ce6f67008d2", "type": "select", "nameRu": "Цвет", "nameTk": "Reňk", "values": ["Akat", "Ak", "Gyzyl", "Gök", "Ýaşil", "Sary", "Gülgün", "Çal"], "required": true}, {"id": "1f973290-cf9c-4112-9cd7-d4ca67c9f9f0", "type": "select", "nameRu": "Размер", "nameTk": "Ölçeg", "values": ["XS", "S", "M", "L", "XL", "XXL"], "required": true}, {"id": "bc56268c-d6f5-4e82-a6aa-35dc9a613387", "type": "number", "unit": "EU", "nameRu": "Размер", "nameTk": "Ölçeg", "values": [], "required": true}]	{}	50	\N	\N
+cmnlbtc7p000jxdgt44yt6zgd	wqd	qdw	cat-3	📦	34.00	45	0	ACTIVE	2026-04-05 05:33:58.166	2026-04-05 05:33:58.166	https://res.cloudinary.com/dlphot301/image/upload/v1775359962/chinaexpress/products/krnxqsxanoz5nbd89fgj.png	34	[{"id": "54a2e44d-590c-4985-ab59-daf83e088896", "type": "number", "unit": "EU", "nameRu": "Размер", "nameTk": "Ölçeg", "values": [], "required": true}, {"id": "70e1932f-8419-42bc-994a-4b75b0ae615c", "type": "select", "nameRu": "Размер", "nameTk": "Ölçeg", "values": ["XS", "S", "M", "L", "XL", "XXL"], "required": true}, {"id": "dd93b518-5a55-4939-b6e2-761723889aea", "type": "select", "nameRu": "Цвет", "nameTk": "Reňk", "values": ["Akat", "Ak", "Gyzyl", "Gök", "Ýaşil", "Sary", "Gülgün", "Çal"], "required": true}]	{}	50	\N	\N
+cmnq8dc8n0003oo8c320vwpxt	wq	wqd	cat-3	📦	20.00	20	0	DRAFT	2026-04-08 15:56:23.729	2026-04-08 15:56:23.729	https://res.cloudinary.com/dlphot301/image/upload/v1775656502/chinaexpress/products/myhwemk5tq5lk54wadvs.png	22	[]	{}	50	\N	\N
+cmnq8e4of0005oo8cgbjsd0mm	wdq	dqw	cat-3	📦	50.00	23	0	ACTIVE	2026-04-08 15:57:00.591	2026-04-08 19:56:13.9	https://res.cloudinary.com/dlphot301/image/upload/v1775656539/chinaexpress/products/z8fi9fwr4rqv2hkejxyp.png	500	[]	{}	50	\N	\N
+cmo79jlw90005enfuj2x0is3u	weeds	sdsdds	cmo79isjm0003enfuus7uborg	📦	45.00	43	0	ACTIVE	2026-04-20 14:01:20.793	2026-04-20 14:01:20.793	https://res.cloudinary.com/dlphot301/image/upload/v1776686376/chinaexpress/products/euwpgslarfmkjotsfeym.png	3443	[]	{https://res.cloudinary.com/dlphot301/image/upload/v1776686376/chinaexpress/products/euwpgslarfmkjotsfeym.png}	50	\N	\N
+cmo77zwxv0001enfuuqjrmt8j	test esik	test esik	cmo4d3lqr0001cz6fcyy0gga0	📦	12.00	0	1	ACTIVE	2026-04-20 13:18:02.371	2026-04-22 19:06:28.071	https://res.cloudinary.com/dlphot301/image/upload/v1776683777/chinaexpress/products/fu3qwsiq5qjewuyvcw3k.png	\N	[]	{https://res.cloudinary.com/dlphot301/image/upload/v1776683777/chinaexpress/products/fu3qwsiq5qjewuyvcw3k.png}	50	\N	\N
+cmmxhqnlr0001tcacoxizwb0v	das	dea	cat-3	📦	12.00	11	1	ACTIVE	2026-03-19 13:13:22.431	2026-04-21 16:56:23.583	https://res.cloudinary.com/dlphot301/image/upload/v1773918758/chinaexpress/products/kezxl6jiedgpnlp1tcfd.jpg	122	[]	{}	50	\N	\N
+cmo4d4y6y0003cz6ft6f8x0k4	salam	salam	cmo4d3lqr0001cz6fcyy0gga0	📦	55.00	53	2	ACTIVE	2026-04-18 13:18:36.826	2026-04-22 19:06:11.291	https://res.cloudinary.com/dlphot301/image/upload/v1776511016/chinaexpress/products/pafdeilvrhtadpi26dsl.jpg	55	[{"id": "4db6b7b1-614b-43ab-bc22-3fab0b17750f", "type": "number", "unit": "EU", "nameRu": "Размер", "nameTk": "Ölçeg", "values": [], "required": true}]	{https://res.cloudinary.com/dlphot301/image/upload/v1776511016/chinaexpress/products/pafdeilvrhtadpi26dsl.jpg}	50	salam	salam
 \.
 
 
 --
--- Data for Name: ProductRequest; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: ProductRequest; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."ProductRequest" (id, "nameTk", "nameRu", description, "imageUrl", "contactName", "contactPhone", "contactEmail", status, "adminNote", "createdAt", "updatedAt") FROM stdin;
 cmn0ehyj70000zlm9phv31906	dgd	dg	gd	\N	dg	+99362160072	babanazarjumadurdyyev@gmail.com	SEEN	\N	2026-03-21 14:05:56.349	2026-03-21 14:06:06.644
 cmn0emy1y00001imq51g2wdez	adec	acs	gdac	\N	dg	+99362160072	babanazarjumadurdyyev@gmail.com	SEEN	\N	2026-03-21 14:09:49.03	2026-03-21 14:09:55.223
-cmn0eqoyv0000u7dzux19kcvh	asd	acs	acs	https://res.cloudinary.com/dlphot301/image/upload/v1774095116/silkshop/requests/qa0izq2puxdrmb53wwzy.jpg	acs	+99362160072	babanazarjumadurdyyev@gmail.com	SEEN	\N	2026-03-21 14:12:43.879	2026-03-21 14:12:49.313
-cmo8vaggt0006oakam9nz6ubu	qwd	qdwwq	ddqw	https://res.cloudinary.com/dlphot301/image/upload/v1776783364/silkshop/requests/dfygapezmuve7ni9cgqq.png	wdq	+99362160072	babanazarjumadurdyyev@gmail.com	SEEN	\N	2026-04-21 16:57:51.581	2026-04-21 16:58:02.304
+cmn0eqoyv0000u7dzux19kcvh	asd	acs	acs	https://res.cloudinary.com/dlphot301/image/upload/v1774095116/chinaexpress/requests/qa0izq2puxdrmb53wwzy.jpg	acs	+99362160072	babanazarjumadurdyyev@gmail.com	SEEN	\N	2026-03-21 14:12:43.879	2026-03-21 14:12:49.313
+cmo8vaggt0006oakam9nz6ubu	qwd	qdwwq	ddqw	https://res.cloudinary.com/dlphot301/image/upload/v1776783364/chinaexpress/requests/dfygapezmuve7ni9cgqq.png	wdq	+99362160072	babanazarjumadurdyyev@gmail.com	SEEN	\N	2026-04-21 16:57:51.581	2026-04-21 16:58:02.304
 \.
 
 
 --
--- Data for Name: RefreshToken; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: RefreshToken; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."RefreshToken" (id, token, "userId", "expiresAt", "createdAt") FROM stdin;
@@ -526,25 +526,25 @@ cmo32tdv40003x4hvo26unn14	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbW1ua
 
 
 --
--- Data for Name: StoreSettings; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: StoreSettings; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."StoreSettings" (id, "nameTk", "nameRu", "taglineTk", "taglineRu", email, phone, "addressTk", "addressRu", currency, logo, "updatedAt") FROM stdin;
-singleton	SilkShop	SilkShop	Iň gowy önümler	Лучшие товары	info@silkshop.tm	+993 12 123456	Aşgabat, Türkmenistan	Ашхабад, Туркменистан	TMT	🛍️	2026-03-16 20:18:28.71
+singleton	chinaexpress	chinaexpress	Iň gowy önümler	Лучшие товары	info@chinaexpress.tm	+993 12 123456	Aşgabat, Türkmenistan	Ашхабад, Туркменистан	TMT	🛍️	2026-03-16 20:18:28.71
 \.
 
 
 --
--- Data for Name: User; Type: TABLE DATA; Schema: public; Owner: silkshop_user
+-- Data for Name: User; Type: TABLE DATA; Schema: public; Owner: chinaexpress_user
 --
 
 COPY public."User" (id, name, email, "passwordHash", role, avatar, phone, timezone, "langPref", "createdAt", "updatedAt") FROM stdin;
-cmmnj19pq0000cu087d2c669b	Admin	admin@silkshop.tm	$2b$10$Pl1q3k8W1u1uQz0Sjt22P.gP/KXTBOnz.4J.uMuhgh4XQOdNcUMvm	ADMIN	👨‍💼	\N	Asia/Ashgabat	tk	2026-03-12 13:51:55.502	2026-04-20 13:13:57.249
+cmmnj19pq0000cu087d2c669b	Admin	admin@chinaexpress.tm	$2b$10$Pl1q3k8W1u1uQz0Sjt22P.gP/KXTBOnz.4J.uMuhgh4XQOdNcUMvm	ADMIN	👨‍💼	\N	Asia/Ashgabat	tk	2026-03-12 13:51:55.502	2026-04-20 13:13:57.249
 \.
 
 
 --
--- Name: Category Category_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Category Category_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Category"
@@ -552,7 +552,7 @@ ALTER TABLE ONLY public."Category"
 
 
 --
--- Name: Comment Comment_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Comment Comment_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Comment"
@@ -560,7 +560,7 @@ ALTER TABLE ONLY public."Comment"
 
 
 --
--- Name: Customer Customer_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Customer Customer_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Customer"
@@ -568,7 +568,7 @@ ALTER TABLE ONLY public."Customer"
 
 
 --
--- Name: OrderLine OrderLine_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: OrderLine OrderLine_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."OrderLine"
@@ -576,7 +576,7 @@ ALTER TABLE ONLY public."OrderLine"
 
 
 --
--- Name: Order Order_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Order Order_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Order"
@@ -584,7 +584,7 @@ ALTER TABLE ONLY public."Order"
 
 
 --
--- Name: ProductRequest ProductRequest_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: ProductRequest ProductRequest_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."ProductRequest"
@@ -592,7 +592,7 @@ ALTER TABLE ONLY public."ProductRequest"
 
 
 --
--- Name: Product Product_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Product Product_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Product"
@@ -600,7 +600,7 @@ ALTER TABLE ONLY public."Product"
 
 
 --
--- Name: RefreshToken RefreshToken_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: RefreshToken RefreshToken_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."RefreshToken"
@@ -608,7 +608,7 @@ ALTER TABLE ONLY public."RefreshToken"
 
 
 --
--- Name: StoreSettings StoreSettings_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: StoreSettings StoreSettings_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."StoreSettings"
@@ -616,7 +616,7 @@ ALTER TABLE ONLY public."StoreSettings"
 
 
 --
--- Name: User User_pkey; Type: CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: User User_pkey; Type: CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."User"
@@ -624,161 +624,161 @@ ALTER TABLE ONLY public."User"
 
 
 --
--- Name: Category_parentId_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Category_parentId_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Category_parentId_idx" ON public."Category" USING btree ("parentId");
 
 
 --
--- Name: Comment_customerId_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Comment_customerId_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Comment_customerId_idx" ON public."Comment" USING btree ("customerId");
 
 
 --
--- Name: Comment_productId_createdAt_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Comment_productId_createdAt_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Comment_productId_createdAt_idx" ON public."Comment" USING btree ("productId", "createdAt" DESC);
 
 
 --
--- Name: Customer_createdAt_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Customer_createdAt_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Customer_createdAt_idx" ON public."Customer" USING btree ("createdAt" DESC);
 
 
 --
--- Name: Customer_email_key; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Customer_email_key; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE UNIQUE INDEX "Customer_email_key" ON public."Customer" USING btree (email);
 
 
 --
--- Name: Customer_googleId_key; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Customer_googleId_key; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE UNIQUE INDEX "Customer_googleId_key" ON public."Customer" USING btree ("googleId");
 
 
 --
--- Name: Customer_status_createdAt_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Customer_status_createdAt_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Customer_status_createdAt_idx" ON public."Customer" USING btree (status, "createdAt" DESC);
 
 
 --
--- Name: OrderLine_orderId_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: OrderLine_orderId_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "OrderLine_orderId_idx" ON public."OrderLine" USING btree ("orderId");
 
 
 --
--- Name: OrderLine_productId_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: OrderLine_productId_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "OrderLine_productId_idx" ON public."OrderLine" USING btree ("productId");
 
 
 --
--- Name: Order_createdAt_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Order_createdAt_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Order_createdAt_idx" ON public."Order" USING btree ("createdAt" DESC);
 
 
 --
--- Name: Order_customerId_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Order_customerId_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Order_customerId_idx" ON public."Order" USING btree ("customerId");
 
 
 --
--- Name: Order_customerId_status_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Order_customerId_status_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Order_customerId_status_idx" ON public."Order" USING btree ("customerId", status);
 
 
 --
--- Name: Order_status_createdAt_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Order_status_createdAt_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Order_status_createdAt_idx" ON public."Order" USING btree (status, "createdAt" DESC);
 
 
 --
--- Name: Order_status_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Order_status_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Order_status_idx" ON public."Order" USING btree (status);
 
 
 --
--- Name: ProductRequest_status_createdAt_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: ProductRequest_status_createdAt_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "ProductRequest_status_createdAt_idx" ON public."ProductRequest" USING btree (status, "createdAt" DESC);
 
 
 --
--- Name: Product_categoryId_status_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Product_categoryId_status_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Product_categoryId_status_idx" ON public."Product" USING btree ("categoryId", status);
 
 
 --
--- Name: Product_status_createdAt_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Product_status_createdAt_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Product_status_createdAt_idx" ON public."Product" USING btree (status, "createdAt" DESC);
 
 
 --
--- Name: Product_status_price_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Product_status_price_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Product_status_price_idx" ON public."Product" USING btree (status, price);
 
 
 --
--- Name: Product_status_sold_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: Product_status_sold_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "Product_status_sold_idx" ON public."Product" USING btree (status, sold DESC);
 
 
 --
--- Name: RefreshToken_token_key; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: RefreshToken_token_key; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE UNIQUE INDEX "RefreshToken_token_key" ON public."RefreshToken" USING btree (token);
 
 
 --
--- Name: RefreshToken_userId_idx; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: RefreshToken_userId_idx; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE INDEX "RefreshToken_userId_idx" ON public."RefreshToken" USING btree ("userId");
 
 
 --
--- Name: User_email_key; Type: INDEX; Schema: public; Owner: silkshop_user
+-- Name: User_email_key; Type: INDEX; Schema: public; Owner: chinaexpress_user
 --
 
 CREATE UNIQUE INDEX "User_email_key" ON public."User" USING btree (email);
 
 
 --
--- Name: Category Category_parentId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Category Category_parentId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Category"
@@ -786,7 +786,7 @@ ALTER TABLE ONLY public."Category"
 
 
 --
--- Name: Comment Comment_customerId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Comment Comment_customerId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Comment"
@@ -794,7 +794,7 @@ ALTER TABLE ONLY public."Comment"
 
 
 --
--- Name: Comment Comment_productId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Comment Comment_productId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Comment"
@@ -802,7 +802,7 @@ ALTER TABLE ONLY public."Comment"
 
 
 --
--- Name: OrderLine OrderLine_orderId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: OrderLine OrderLine_orderId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."OrderLine"
@@ -810,7 +810,7 @@ ALTER TABLE ONLY public."OrderLine"
 
 
 --
--- Name: OrderLine OrderLine_productId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: OrderLine OrderLine_productId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."OrderLine"
@@ -818,7 +818,7 @@ ALTER TABLE ONLY public."OrderLine"
 
 
 --
--- Name: Order Order_customerId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Order Order_customerId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Order"
@@ -826,7 +826,7 @@ ALTER TABLE ONLY public."Order"
 
 
 --
--- Name: Product Product_categoryId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: Product Product_categoryId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."Product"
@@ -834,7 +834,7 @@ ALTER TABLE ONLY public."Product"
 
 
 --
--- Name: RefreshToken RefreshToken_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: silkshop_user
+-- Name: RefreshToken RefreshToken_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chinaexpress_user
 --
 
 ALTER TABLE ONLY public."RefreshToken"

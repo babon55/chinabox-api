@@ -4,8 +4,8 @@ import { LoginSchema, RefreshSchema, PasswordChangeSchema } from '../../shared/t
 import { badRequest, unauthorized, notFound } from '../../shared/errors.js'
 import bcrypt from 'bcrypt'
 
-function hashPw(pw: string) {
-  return bcrypt.hashSync(pw, 10)
+async function hashPw(pw: string) {
+  return bcrypt.hash(pw, 10)
 }
 
 export default async function authRoutes(app: FastifyInstance) {
@@ -18,14 +18,13 @@ export default async function authRoutes(app: FastifyInstance) {
     const { email, password } = parsed.data
 
     const user = await app.prisma.user.findUnique({ where: { email } })
-    // ✅ use compareSync instead of !==
-    if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+    if (!user || !await bcrypt.compare(password, user.passwordHash)) {
       return unauthorized(reply, 'Invalid email or password')
     }
 
     const payload = { sub: user.id, email: user.email, role: user.role }
     const accessToken  = app.jwt.sign(payload, { expiresIn: config.jwt.accessExpiresIn })
-    const refreshToken = app.jwt.sign({ ...payload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn })
+    const refreshToken = app.jwt.sign({ ...payload, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn, secret: config.jwt.refreshSecret })
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     await app.prisma.refreshToken.create({
@@ -48,7 +47,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
     let payload: { sub: string; email: string; role: string }
     try {
-      payload = app.jwt.verify(refreshToken) as typeof payload
+      payload = app.jwt.verify(refreshToken, { secret: config.jwt.refreshSecret }) as typeof payload
     } catch {
       return unauthorized(reply, 'Invalid refresh token')
     }
@@ -61,7 +60,7 @@ export default async function authRoutes(app: FastifyInstance) {
     await app.prisma.refreshToken.delete({ where: { token: refreshToken } })
 
     const newAccessToken  = app.jwt.sign({ sub: payload.sub, email: payload.email, role: payload.role }, { expiresIn: config.jwt.accessExpiresIn })
-    const newRefreshToken = app.jwt.sign({ sub: payload.sub, email: payload.email, role: payload.role, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn })
+    const newRefreshToken = app.jwt.sign({ sub: payload.sub, email: payload.email, role: payload.role, type: 'refresh' }, { expiresIn: config.jwt.refreshExpiresIn, secret: config.jwt.refreshSecret })
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     await app.prisma.refreshToken.create({
@@ -116,13 +115,13 @@ export default async function authRoutes(app: FastifyInstance) {
     const user = await app.prisma.user.findUnique({ where: { id: (req.user as any).sub } })
     if (!user) return notFound(reply, 'User')
     // ✅ use compareSync instead of !==
-    if (!bcrypt.compareSync(currentPassword, user.passwordHash)) {
+    if (!await bcrypt.compare(currentPassword, user.passwordHash)) {
       return unauthorized(reply, 'Current password is incorrect')
     }
 
     await app.prisma.user.update({
       where: { id: (req.user as any).sub },
-      data:  { passwordHash: hashPw(newPassword) },
+      data:  { passwordHash: await hashPw(newPassword) },
     })
     await app.prisma.refreshToken.deleteMany({ where: { userId: (req.user as any).sub } })
 

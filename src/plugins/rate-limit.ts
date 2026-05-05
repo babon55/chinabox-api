@@ -80,7 +80,6 @@ function parseTimeWindow(window: string | number): number {
 }
 
 export async function rateLimitPlugin(app: FastifyInstance) {
-  console.log('!!! rateLimitPlugin invoked on app') // Debug
   // Initialize storage for this app instance (not shared)
   let storage: RateLimitStorage
 
@@ -105,9 +104,6 @@ export async function rateLimitPlugin(app: FastifyInstance) {
     // Get route-specific rate limit options from reply.routeOptions
     const routeOptions = (reply as any).routeOptions as { rateLimit?: RateLimitOptions | false } | undefined
     let rlOptions = routeOptions?.rateLimit
-
-    // Debug: always log for testing
-    console.log('[RateLimit] Hook called. routeOptions:', routeOptions, 'rlOptions:', rlOptions, 'path:', req.url)
 
     // If rate limiting is explicitly disabled, skip
     if (rlOptions === false) {
