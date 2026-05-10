@@ -10,11 +10,22 @@ export default async function settingsRoutes(app: FastifyInstance) {
     ...guard,
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
   }, async (_req, reply) => {
-    const settings = await app.prisma.storeSettings.upsert({
-      where:  { id: 'singleton' },
-      update: {},
-      create: { id: 'singleton' },
+    // ✅ FIX 7: was upsert — which performs a write on every GET request.
+    //    Now: findUnique for reads. The singleton is guaranteed to exist
+    //    because seed.ts creates it at startup. If somehow missing, we
+    //    fall back to upsert once rather than on every request.
+    let settings = await app.prisma.storeSettings.findUnique({
+      where: { id: 'singleton' },
     })
+
+    if (!settings) {
+      settings = await app.prisma.storeSettings.upsert({
+        where:  { id: 'singleton' },
+        update: {},
+        create: { id: 'singleton' },
+      })
+    }
+
     return reply.send(settings)
   })
 
@@ -24,6 +35,7 @@ export default async function settingsRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const parsed = StoreSettingsSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
+
     const settings = await app.prisma.storeSettings.upsert({
       where:  { id: 'singleton' },
       update: parsed.data,

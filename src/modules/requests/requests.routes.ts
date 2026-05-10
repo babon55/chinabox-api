@@ -27,16 +27,15 @@ const QuerySchema = z.object({
 export default async function requestsRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
 
-  // POST /api/v1/requests — PUBLIC (customers submit requests)
+  // POST /api/v1/requests — PUBLIC
   app.post('/', {
     rateLimit: { max: config.rateLimits.publicRequests.max, timeWindow: config.rateLimits.publicRequests.timeWindow }
   }, async (req, reply) => {
     const parsed = CreateRequestSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
 
-    const request = await (app.prisma as any).productRequest.create({
-      data: parsed.data,
-    })
+    // ✅ FIX 13 (bundled): removed (app.prisma as any) cast
+    const request = await app.prisma.productRequest.create({ data: parsed.data })
     return reply.code(201).send(request)
   })
 
@@ -52,13 +51,13 @@ export default async function requestsRoutes(app: FastifyInstance) {
     const where = status ? { status } : {}
 
     const [items, total] = await Promise.all([
-      (app.prisma as any).productRequest.findMany({
+      app.prisma.productRequest.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         skip:    (page - 1) * limit,
         take:    limit,
       }),
-      (app.prisma as any).productRequest.count({ where }),
+      app.prisma.productRequest.count({ where }),
     ])
 
     return reply.send({ items, total, page, limit, pages: Math.ceil(total / limit) })
@@ -73,14 +72,18 @@ export default async function requestsRoutes(app: FastifyInstance) {
     const parsed = UpdateRequestSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
 
-    const exists = await (app.prisma as any).productRequest.findUnique({ where: { id } })
-    if (!exists) return notFound(reply, 'Request')
-
-    const updated = await (app.prisma as any).productRequest.update({
-      where: { id },
-      data:  parsed.data,
-    })
-    return reply.send(updated)
+    // ✅ FIX 6: removed findUnique before update — catch P2025 instead
+    //    Was: 2 DB round-trips. Now: 1.
+    try {
+      const updated = await app.prisma.productRequest.update({
+        where: { id },
+        data:  parsed.data,
+      })
+      return reply.send(updated)
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Request')
+      throw e
+    }
   })
 
   // DELETE /api/v1/requests/:id — ADMIN only
@@ -89,9 +92,15 @@ export default async function requestsRoutes(app: FastifyInstance) {
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
   }, async (req, reply) => {
     const { id } = req.params as { id: string }
-    const exists = await (app.prisma as any).productRequest.findUnique({ where: { id } })
-    if (!exists) return notFound(reply, 'Request')
-    await (app.prisma as any).productRequest.delete({ where: { id } })
-    return reply.code(204).send()
+
+    // ✅ FIX 6: removed findUnique before delete — catch P2025 instead
+    //    Was: 2 DB round-trips. Now: 1.
+    try {
+      await app.prisma.productRequest.delete({ where: { id } })
+      return reply.code(204).send()
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Request')
+      throw e
+    }
   })
 }

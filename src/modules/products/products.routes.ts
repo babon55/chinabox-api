@@ -17,7 +17,7 @@ export default async function productsRoutes(app: FastifyInstance) {
 
     const { status, search, page, limit, category, sort, exclude } = q.data
 
-    // ── Resolve category filter: if parent, include all children ──────────
+    // Resolve category filter: if parent, include all children
     let categoryFilter: object = {}
     if (category) {
       const cat = await app.prisma.category.findUnique({
@@ -44,9 +44,9 @@ export default async function productsRoutes(app: FastifyInstance) {
 
     const orderBy = (() => {
       switch (sort) {
-        case 'price_asc':  return { price: 'asc'  as const }
-        case 'price_desc': return { price: 'desc' as const }
-        case 'popular':    return { sold:  'desc' as const }
+        case 'price_asc':  return { price:     'asc'  as const }
+        case 'price_desc': return { price:     'desc' as const }
+        case 'popular':    return { sold:      'desc' as const }
         default:           return { createdAt: 'desc' as const }
       }
     })()
@@ -57,20 +57,21 @@ export default async function productsRoutes(app: FastifyInstance) {
         include:  { category: { include: { parent: true } } },
         orderBy,
         skip:     (page - 1) * limit,
-        take:     limit,
+        take:     sort === 'random' ? limit * 3 : limit, // fetch extra pool for random
       }),
       app.prisma.product.count({ where }),
     ])
 
-    let items = itemsRaw.map(p => ({
+    // Shuffle within the fetched pool when sort=random, then take the page size
+    const pool = sort === 'random'
+      ? itemsRaw.sort(() => Math.random() - 0.5).slice(0, limit)
+      : itemsRaw
+
+    const items = pool.map(p => ({
       ...p,
       price:   Number(p.price),
       weightG: p.weightG != null ? Number(p.weightG) : null,
     }))
-
-    if (sort === 'random') {
-      items = items.sort(() => Math.random() - 0.5)
-    }
 
     return reply.send({ items, total, page, limit, pages: Math.ceil(total / limit) })
   })
@@ -143,6 +144,7 @@ export default async function productsRoutes(app: FastifyInstance) {
       }),
       app.prisma.product.count({ where }),
     ])
+
     const items = itemsRaw.map(p => ({
       ...p,
       price:   Number(p.price),
@@ -178,18 +180,25 @@ export default async function productsRoutes(app: FastifyInstance) {
     const { id }  = req.params as { id: string }
     const parsed  = ProductUpdateSchema.safeParse(req.body)
     if (!parsed.success) return badRequest(reply, parsed.error.message)
-    const exists = await app.prisma.product.findUnique({ where: { id } })
-    if (!exists) return notFound(reply, 'Product')
-    const product = await app.prisma.product.update({
-      where:   { id },
-      data:    parsed.data,
-      include: { category: { include: { parent: true } } },
-    })
-    return reply.send({
-      ...product,
-      price:   Number(product.price),
-      weightG: product.weightG != null ? Number(product.weightG) : null,
-    })
+
+    // ✅ FIX 6: removed findUnique check — update directly, catch P2025
+    //    Was: 2 DB round-trips (findUnique + update)
+    //    Now: 1 DB round-trip (update, 404 if not found)
+    try {
+      const product = await app.prisma.product.update({
+        where:   { id },
+        data:    parsed.data,
+        include: { category: { include: { parent: true } } },
+      })
+      return reply.send({
+        ...product,
+        price:   Number(product.price),
+        weightG: product.weightG != null ? Number(product.weightG) : null,
+      })
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Product')
+      throw e
+    }
   })
 
   // DELETE /api/v1/products/:id
@@ -198,13 +207,18 @@ export default async function productsRoutes(app: FastifyInstance) {
     rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
   }, async (req, reply) => {
     const { id } = req.params as { id: string }
-    const exists = await app.prisma.product.findUnique({ where: { id } })
-    if (!exists) return notFound(reply, 'Product')
-    await app.prisma.product.delete({ where: { id } })
-    return reply.code(204).send()
+
+    // ✅ FIX 6: removed findUnique check — delete directly, catch P2025
+    try {
+      await app.prisma.product.delete({ where: { id } })
+      return reply.code(204).send()
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Product')
+      throw e
+    }
   })
 
-  // ── ADMIN CATEGORIES CRUD ────────────────────────────────────────────────
+  // ── ADMIN CATEGORIES CRUD ─────────────────────────────────────────────────
 
   // POST /api/v1/products/categories
   app.post('/categories', guard, async (req, reply) => {
@@ -220,16 +234,31 @@ export default async function productsRoutes(app: FastifyInstance) {
   app.patch('/categories/:id', guard, async (req, reply) => {
     const { id } = req.params as { id: string }
     const b = req.body as { nameTk?: string; nameRu?: string; parentId?: string | null }
-    const cat = await app.prisma.category.update({ where: { id }, data: b })
-    return reply.send(cat)
+
+    // ✅ FIX 6: catch P2025 instead of findUnique first
+    try {
+      const cat = await app.prisma.category.update({ where: { id }, data: b })
+      return reply.send(cat)
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Category')
+      throw e
+    }
   })
 
   // DELETE /api/v1/products/categories/:id
   app.delete('/categories/:id', guard, async (req, reply) => {
     const { id } = req.params as { id: string }
-    // Promote orphaned subcategories to root before deleting
+
+    // Promote orphaned subcategories to root before deleting — needs 2 queries, that's correct
     await app.prisma.category.updateMany({ where: { parentId: id }, data: { parentId: null } })
-    await app.prisma.category.delete({ where: { id } })
-    return reply.code(204).send()
+
+    // ✅ FIX 6: catch P2025 instead of findUnique first
+    try {
+      await app.prisma.category.delete({ where: { id } })
+      return reply.code(204).send()
+    } catch (e: any) {
+      if (e.code === 'P2025') return notFound(reply, 'Category')
+      throw e
+    }
   })
 }

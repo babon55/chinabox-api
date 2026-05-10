@@ -4,6 +4,15 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { config } from '../config.js'
 import { unauthorized } from '../shared/errors.js'
 
+declare module '@fastify/jwt' {
+  interface SignOptions {
+    secret?: string
+  }
+  interface VerifyOptions {
+    secret?: string
+  }
+}
+
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>
