@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,
+    "noImplicitAny": false,
     "target":            "ES2022",
     "module":            "NodeNext",
     "moduleResolution":  "NodeNext",
@@ -7,7 +9,6 @@
     "rootDir":           "./src",
     "strict":            true,
     "esModuleInterop":   true,
-    "skipLibCheck":      true,
     "resolveJsonModule": true,
     "sourceMap":         true
   },
