@@ -249,10 +249,24 @@ export default async function productsRoutes(app: FastifyInstance) {
   app.delete('/categories/:id', guard, async (req, reply) => {
     const { id } = req.params as { id: string }
 
-    // Promote orphaned subcategories to root before deleting — needs 2 queries, that's correct
+    // Check if any products are assigned to this category or its children
+    const children = await app.prisma.category.findMany({
+      where:  { parentId: id },
+      select: { id: true },
+    })
+    const allIds = [id, ...children.map(c => c.id)]
+
+    const productCount = await app.prisma.product.count({
+      where: { categoryId: { in: allIds } },
+    })
+
+    if (productCount > 0) {
+      return badRequest(reply, `Cannot delete: ${productCount} product(s) are assigned to this category. Move or delete them first.`)
+    }
+
+    // Safe to delete — promote orphaned subcategories to root first
     await app.prisma.category.updateMany({ where: { parentId: id }, data: { parentId: null } })
 
-    // ✅ FIX 6: catch P2025 instead of findUnique first
     try {
       await app.prisma.category.delete({ where: { id } })
       return reply.code(204).send()
