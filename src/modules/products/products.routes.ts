@@ -208,7 +208,15 @@ export default async function productsRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const { id } = req.params as { id: string }
 
-    // ✅ FIX 6: removed findUnique check — delete directly, catch P2025
+    // Check if product has order lines
+    const orderLineCount = await app.prisma.orderLine.count({
+      where: { productId: id },
+    })
+
+    if (orderLineCount > 0) {
+      return badRequest(reply, `Cannot delete: this product is part of ${orderLineCount} order(s). Archive it instead.`)
+    }
+
     try {
       await app.prisma.product.delete({ where: { id } })
       return reply.code(204).send()
