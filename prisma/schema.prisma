@@ -24,14 +24,17 @@ model User {
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id         String    @id @default(cuid())
+  token      String    @unique
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
 
   @@index([userId])
+  @@index([customerId])
 }
 
 enum Role {
@@ -124,6 +127,7 @@ model Customer {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   comments     Comment[]
+  refreshTokens RefreshToken[]
 
   @@index([status, createdAt(sort: Desc)])   // customer listing
   @@index([createdAt(sort: Desc)])            // analytics new customers

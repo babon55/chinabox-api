@@ -66,7 +66,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     // ✅ FIX 3: store refresh token in DB so it can be revoked
     const expiresAt = new Date(Date.now() + parseTtlMs(config.jwt.refreshExpiresIn))
     await app.prisma.refreshToken.create({
-      data: { token: refreshToken, userId: customer.id, expiresAt },
+      data: { token: refreshToken, customerId: customer.id, expiresAt },
     })
 
     return reply.code(201).send({
@@ -96,7 +96,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
     // ✅ FIX 3: store refresh token in DB
     const expiresAt = new Date(Date.now() + parseTtlMs(config.jwt.refreshExpiresIn))
     await app.prisma.refreshToken.create({
-      data: { token: refreshToken, userId: customer.id, expiresAt },
+      data: { token: refreshToken, customerId: customer.id, expiresAt },
     })
 
     return reply.code(200).send({
@@ -143,7 +143,7 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
 
     const expiresAt = new Date(Date.now() + parseTtlMs(config.jwt.refreshExpiresIn))
     await app.prisma.refreshToken.create({
-      data: { token: newRefreshToken, userId: customer.id, expiresAt },
+      data: { token: newRefreshToken, customerId: customer.id, expiresAt },
     })
 
     return reply.send({ accessToken: newAccessToken, refreshToken: newRefreshToken })
