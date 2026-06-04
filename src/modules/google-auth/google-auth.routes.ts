@@ -51,7 +51,7 @@ export default async function googleAuthRoutes(fastify: FastifyInstance) {
       )
 
       return reply.redirect(
-        `tm.chinaexpress.app://auth/google/success?token=${accessToken}&refresh=${refreshToken}`
+        `${process.env.CLIENT_URL}/auth/google/success?token=${accessToken}&refresh=${refreshToken}`
       )
     } catch (err) {
       fastify.log.error(err)
