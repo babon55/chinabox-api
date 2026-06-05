@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import { config } from '../../config.js'
 
 export default async function googleAuthRoutes(fastify: FastifyInstance) {
   fastify.get('/auth/google/callback', async (request, reply) => {
@@ -41,9 +42,9 @@ export default async function googleAuthRoutes(fastify: FastifyInstance) {
       const payload = { sub: user.id, email: user.email, name: user.name, role: 'CUSTOMER' }
 
       // ✅ Generate both tokens — same as regular login
-      const accessToken  = fastify.jwt.sign(
+      const accessToken = fastify.jwt.sign(
         { ...payload, type: 'access' },
-        { expiresIn: '15m' }   // short-lived
+        { expiresIn: config.jwt.accessExpiresIn }
       )
       const refreshToken = fastify.jwt.sign(
         { ...payload, type: 'refresh' },
