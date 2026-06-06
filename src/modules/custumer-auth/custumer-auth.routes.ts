@@ -299,6 +299,10 @@ export default async function customerAuthRoutes(app: FastifyInstance) {
       if (e.message?.includes('Insufficient stock')) {
         return badRequest(reply, e.message)
       }
+      // Handle foreign key constraint (customer not found in DB)
+      if (e.code === 'P2003') {
+        return unauthorized(reply, 'Session expired. Please sign in again.')
+      }
       throw e
     }
 
