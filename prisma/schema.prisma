@@ -223,6 +223,7 @@ model Comment {
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   rating     Int
   text       String
+  images     String[] @default([])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

@@ -6,6 +6,7 @@ import { config } from '../../config.js'
 const CreateCommentSchema = z.object({
   rating: z.number().int().min(1).max(5),
   text:   z.string().min(1).max(1000),
+  images: z.array(z.string().url()).max(3).optional().default([]),
 })
 
 // ✅ FIX 5: pagination schema for public comments
@@ -121,6 +122,7 @@ export default async function commentsRoutes(app: FastifyInstance) {
         customerId: user.sub,
         rating:     parsed.data.rating,
         text:       parsed.data.text,
+        images:     parsed.data.images,
       },
       include: { customer: { select: { id: true, name: true } } },
     })
