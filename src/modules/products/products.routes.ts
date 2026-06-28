@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import { ProductCreateSchema, ProductUpdateSchema, ProductQuerySchema } from '../../shared/types.js'
 import { badRequest, notFound } from '../../shared/errors.js'
 import { config } from '../../config.js'
+import { ProductBulkImportSchema } from '../../shared/types.js'
+import { ProductBulkImportRowSchema } from '../../shared/types.js'
 
 export default async function productsRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.authenticate] }
@@ -170,6 +172,75 @@ export default async function productsRoutes(app: FastifyInstance) {
       price:   Number(product.price),
       weightG: product.weightG != null ? Number(product.weightG) : null,
     })
+  })
+
+  // POST /api/v1/products/bulk-import
+  app.post('/bulk-import', {
+    ...guard,
+    rateLimit: { max: config.rateLimits.admin.max, timeWindow: config.rateLimits.admin.timeWindow }
+  }, async (req, reply) => {
+    const parsed = ProductBulkImportSchema.safeParse(req.body)
+    if (!parsed.success) return badRequest(reply, parsed.error.message)
+
+    const allCategories = await app.prisma.category.findMany()
+    const categoryMap = new Map<string, string>()
+    for (const c of allCategories) {
+      categoryMap.set(c.nameTk.trim().toLowerCase(), c.id)
+      categoryMap.set(c.nameRu.trim().toLowerCase(), c.id)
+    }
+
+    const results: { row: number; status: 'created' | 'failed'; error?: string; id?: string }[] = []
+
+    for (let i = 0; i < parsed.data.rows.length; i++) {
+      const rowNum = i + 2 // row 1 = header, first data row = row 2
+
+      const rowParsed = ProductBulkImportRowSchema.safeParse(parsed.data.rows[i])
+      if (!rowParsed.success) {
+        const msg = rowParsed.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join('; ')
+        results.push({ row: rowNum, status: 'failed', error: msg })
+        continue
+      }
+      const row = rowParsed.data
+
+      const categoryId = categoryMap.get(row.categoryName.trim().toLowerCase())
+      if (!categoryId) {
+        results.push({ row: rowNum, status: 'failed', error: `Category "${row.categoryName}" not found` })
+        continue
+      }
+
+      const imageUrls = row.imageUrls
+        ? row.imageUrls.split(';').map(u => u.trim()).filter(Boolean)
+        : []
+
+      try {
+        const product = await app.prisma.product.create({
+          data: {
+            nameTk:        row.nameTk,
+            nameRu:        row.nameRu,
+            descriptionTk: row.descriptionTk ?? null,
+            descriptionRu: row.descriptionRu ?? null,
+            categoryId,
+            image:         '📦',
+            imageUrl:      imageUrls[0] ?? null,
+            imageUrls,
+            price:         row.price,
+            weightG:       row.weightG ?? null,
+            stock:         row.stock ?? 999,
+            status:        row.status ?? 'ACTIVE',
+            markup:        row.markup ?? 50,
+            options:       [],
+          },
+        })
+        results.push({ row: rowNum, status: 'created', id: product.id })
+      } catch (e: any) {
+        results.push({ row: rowNum, status: 'failed', error: e.message ?? 'Unknown error' })
+      }
+    }
+
+    const created = results.filter(r => r.status === 'created').length
+    const failed  = results.filter(r => r.status === 'failed').length
+
+    return reply.send({ created, failed, results })
   })
 
   // PATCH /api/v1/products/:id

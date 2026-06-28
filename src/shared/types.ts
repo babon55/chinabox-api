@@ -136,3 +136,22 @@ export const CustomerLoginSchema = z.object({
   email:    z.string().email(),
   password: z.string().min(1),
 })
+
+// ─── Bulk Import ──────────────────────────────────────────────────────────────
+export const ProductBulkImportRowSchema = z.object({
+  nameTk:        z.string().min(1),
+  nameRu:        z.string().min(1),
+  categoryName:  z.string().min(1),
+  price:         z.coerce.number().positive(),
+  markup:        z.coerce.number().int().min(0).optional(),
+  weightG:       z.coerce.number().int().positive().optional().nullable(),
+  stock:         z.coerce.number().int().min(0).optional(),
+  status:        z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),
+  descriptionTk: z.string().optional().nullable(),
+  descriptionRu: z.string().optional().nullable(),
+  imageUrls:     z.string().optional().nullable(),
+})
+
+export const ProductBulkImportSchema = z.object({
+  rows: z.array(z.record(z.string(), z.any())).min(1).max(500), // ← loosened: validated per-row below
+})
